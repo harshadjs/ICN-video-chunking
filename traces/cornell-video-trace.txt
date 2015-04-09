@@ -1,0 +1,11 @@
+872875354	{Fri Aug 29 17:22:34 EST 1997}	0	spock.cdt.luth.se	GET	ArkivX_970206
+872876661	{Fri Aug 29 17:44:21 EST 1997}	1307	aniara.cdt.luth.se	GET	Severe_Tire_Damage
+872876743	{Fri Aug 29 17:45:43 EST 1997}	82	aniara.cdt.luth.se	STOP	Severe_Tire_Damage
+872876773	{Fri Aug 29 17:46:13 EST 1997}	30	aniara.cdt.luth.se	GET	NASA_LAUNCH_970515
+872876810	{Fri Aug 29 17:46:50 EST 1997}	37	aniara.cdt.luth.se	STOP	NASA_LAUNCH_970515
+872876819	{Fri Aug 29 17:46:59 EST 1997}	9	aniara.cdt.luth.se	GET	NASA_LAUNCH_970515
+872880710	{Fri Aug 29 18:51:50 EST 1997}	3891	fddi.cdt.luth.se	GET	Life_of_Brian
+872880977	{Fri Aug 29 18:56:17 EST 1997}	267	fddi.cdt.luth.se	STOP	Life_of_Brian
+872954472	{Sat Aug 30 15:21:12 EST 1997}	73495	fubar.campus.luth.se	GET	Waterworld
+872954559	{Sat Aug 30 15:22:39 EST 1997}	87	fubar.campus.luth.se	STOP	Waterworld
+872954588	{Sat Aug 30 15:23:08 EST 1997}	29	fubar.campus.luth.se	GET	Waterworld

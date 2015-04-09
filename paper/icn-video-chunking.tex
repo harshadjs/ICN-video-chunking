@@ -1,0 +1,80 @@
+\documentclass[conference]{SIGCOMM}
+
+\let\labelindent\relax
+\usepackage{enumitem}\setlist{nolistsep}
+
+\usepackage{color}
+\newcommand{\todoh}[1]{{\color{red} \{TODO (from Harshad): #1 \}}}
+\newcommand{\todod}[1]{{\color{blue} \{TODO (from Dayoon): #1 \}}}
+
+\usepackage{url}
+\usepackage{graphicx}
+\newcommand\blfootnote[1]{%
+  \begingroup
+  \renewcommand\thefootnote{}\footnote{#1}%
+  \addtocounter{footnote}{-1}%
+  \endgroup
+}
+
+\usepackage{listings,textcomp,color}
+\lstset{language=Python,upquote=true,
+  basicstyle=\scriptsize,commentstyle=\textit,stringstyle=\upshape,
+  numbers=left,numberstyle=\scriptsize,stepnumber=1,numbersep=5pt,
+  backgroundcolor=\color{white},frame=single,tabsize=2,
+  showspaces=false,showstringspaces=false,showtabs=false,
+  breaklines=true,breakatwhitespace=true,escapeinside=||
+}
+
+%
+\def\sharedaffiliation{%
+\end{tabular}
+\begin{tabular}{c}}
+%
+
+\usepackage{caption,subcaption} % Subfigures
+
+\begin{document}
+
+\title{SEGM EN TAT IO N: Effect of Chunking for Video Based Workloads
+    in Information-Centric Networks}
+
+\numberofauthors{1}
+\author{
+  \alignauthor{Harshad Shirwadkar, Dayoon Chung}
+  \\
+  \sharedaffiliation
+  \affaddr{Carnegie Mellon University }   \\
+  \affaddr{Pittsburgh, PA 15213. }
+  \\
+  \email{\{harshad, dayoon\}@cmu.edu}
+%%  Paper \#163: 12 Pages
+}
+
+\maketitle
+
+\begin{abstract}
+MyAbstract
+\end{abstract}
+
+% A category with the (minimum) three required fields
+\category{C.2}{Computer-Communication Networks}{Miscellaneous}
+\category{C.4}{Performance of Systems}{Measurement Techniques}
+
+\terms{Measurement, Performance, Experimentation}
+
+\keywords{ICN, CCN, NDN, Video} % NOT required for Proceedings
+
+\input{sections/intro}
+\todoh{Fill in this section}
+\input{sections/background}
+\input{sections/approach}
+\input{sections/evaluation}
+\todoh{Fill in this section}
+\input{sections/related_work}
+\todoh{Fill in this section}
+\input{sections/conclusion}
+\todoh{Fill in this section}
+\bibliographystyle{abbrv}
+\bibliography{refs}
+
+\end{document}
