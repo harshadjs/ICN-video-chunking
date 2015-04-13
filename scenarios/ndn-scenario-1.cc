@@ -57,7 +57,7 @@ main(int argc, char* argv[])
   ndn::AppHelper app2("icnVideoChunkingServer");
   app2.Install(node); // last node
 
-  Simulator::Stop(Seconds(20.0));
+  Simulator::Stop(Seconds(200.0));
 
   Simulator::Run();
   Simulator::Destroy();

@@ -23,6 +23,7 @@
 
 #include "ns3/log.h"
 
+#include "ns3/ndnSIM/helper/ndn-stack-helper.hpp"
 #include "ns3/ndnSIM/helper/ndn-fib-helper.hpp"
 
 NS_LOG_COMPONENT_DEFINE("icnVideoChunkingServer");
@@ -47,10 +48,25 @@ icnVideoChunkingServer::icnVideoChunkingServer()
 void
 icnVideoChunkingServer::OnInterest(std::shared_ptr<const ndn::Interest> interest)
 {
-  ndn::App::OnInterest(interest); // forward call to perform app-level tracing
-  // do nothing else (hijack interest)
+  // ndn::App::OnInterest(interest); // forward call to perform app-level tracing
+  // // do nothing else (hijack interest)
 
-  NS_LOG_DEBUG("Do nothing for incoming interest for" << interest->getName());
+  // NS_LOG_DEBUG("Do nothing for incoming interest for" << interest->getName());
+
+  ndn::App::OnInterest(interest);
+
+  std::cout << "P:[Interest]\t<==" << interest->getName() << std::endl;
+
+  // Note that Interests send out by the app will not be sent back to the app !
+
+  auto data = std::make_shared<ndn::Data>(interest->getName());
+  data->setFreshnessPeriod(ndn::time::milliseconds(1000));
+  data->setContent(std::make_shared< ::ndn::Buffer>(10));
+  ndn::StackHelper::getKeyChain().sign(*data);
+
+  // Call trace (for logging purposes)
+  m_transmittedDatas(data, this, m_face);
+  m_face->onReceiveData(*data);
 }
 
 void
