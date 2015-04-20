@@ -17,7 +17,7 @@ class video:
         fd.write(str(self.popularity) + "," + str(self.access_pattern)
                  + "," + str(self.size) + "\n")
 
-def generate_videos():
+def generate_config():
     pop_array = numpy.random.zipf(alpha, num_videos)
     pop_array_sorted = sorted(pop_array, key = int, reverse = True)
 
@@ -25,7 +25,7 @@ def generate_videos():
     count = 1
     for pop in pop_array_sorted:
         video_name = ("video_%d" % count)
-        my_video = video(video_name, pop, 1, 100)
+        my_video = video(video_name, pop, 1, int(numpy.random.uniform(0.0, 30720.0)))
         video_list.append(my_video)
         count = count + 1
 
@@ -39,9 +39,13 @@ def generate_videos():
 ## main ##
 ##
 
+filename = "/home/harshad/projects/icn-video-chunking/icn-video-chunking-ndn-apps/videos.conf" 	## SET_THIS
 
-num_videos = 100
-filename = "videos.conf"
-alpha = 1.5
-
-generate_videos()
+if len(sys.argv) != 4:
+    print("Usage: %s <alpha> <max_video_size> <num_videos>\n",
+          sys.argv[0])
+else:
+    alpha = float(sys.argv[1])
+    video_max_size = int(sys.argv[2]) * 1024
+    num_videos = int(sys.argv[3])
+    generate_config()

@@ -24,22 +24,9 @@
 
 #include <stdint.h>
 #include "ns3/ndnSIM/apps/ndn-app.hpp"
+#include "icn-chunking-helper.hpp"
 
 namespace ns3 {
-
-  struct video {
-    uint32_t popularity;
-    uint32_t access;
-    uint32_t size;
-    uint32_t index;
-  };
-
-  struct video_state {
-    uint8_t active;
-    struct video *video;
-    uint32_t current_offset;
-    /* uint8_t access_dist; */
-  };
 
   /**
    * @brief A simple custom application
@@ -51,11 +38,6 @@ namespace ns3 {
    *
    * When an Interest is received, it is replied with a Data with 1024-byte fake payload
    */
-  enum {
-    EXP,
-    UNI,
-    PARETO,
-  };
 
   class icnVideoChunkingClient : public ndn::App {
   public:
@@ -83,16 +65,9 @@ namespace ns3 {
     struct video *get_next_video(void);
 
   private:
-    struct video_state video_state;
-    int video_access_dist;
-    int video_size_dist;
-    struct video *video_list;
-    int n_videos;
-    int total_views;
-    void
-    SendInterest();
+    ns3::icn_chunking_helper helper;
+    void SendInterest();
   };
-
 } // namespace ns3
 
 #endif // CUSTOM_APP_H_
