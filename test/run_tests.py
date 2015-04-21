@@ -7,7 +7,8 @@ import shutil
 chunk_sizes = [100, 1000]
 
 def log(string, end = "\n"):
-    print(string, end = end, flush = True)
+    print(string, end = end)
+    sys.stdout.flush()
 
 def run_experiment(num, alpha, num_videos, max_size):
     print("New experiment started with configuration ", end = "")
@@ -52,15 +53,15 @@ def run_experiment(num, alpha, num_videos, max_size):
 
             try:
                 shutil.move("/tmp/waf.log", exp_result_path \
-                            + "/waf-%s-%s.log" % (filename, chunk_size))
+                             + "/waf-%s-%s.log" % (filename, chunk_size))
                 shutil.move(ns3_dir + "/cs-trace.txt", \
                             exp_result_path + "/cs-trace-%s-%s.txt" \
                             % (filename, chunk_size))
-            except OSError as e:
-                if e.errno != errno.ENOENT:
-                    raise e
-                else:
-                    log("\t(!WARNING! This run did not produce cs-trace.txt)", end = "")
+            except IOError as e:
+                #if e.errno != errno.ENOENT:
+                #    raise e
+                #else:
+                log("\t(!WARNING! This run did not produce cs-trace.txt)", end = "")
             log("")
 
 ##
@@ -68,10 +69,9 @@ def run_experiment(num, alpha, num_videos, max_size):
 ##
 
 
-ndn_path = "/home/harshad/projects/ndn" 			## SET_THIS
-repo_path = "/home/harshad/projects/icn-video-chunking/" 	## SET_THIS
-
-ndn_app_path = "/home/harshad/projects/icn-video-chunking/" + \
+ndn_path = "/home/dayoon/ndnsim" 			## SET_THIS
+repo_path = "/home/dayoon/15744/ICN-video-chunking" 	## SET_THIS
+ndn_app_path = "/home/dayoon/15744/ICN-video-chunking/" + \
                "icn-video-chunking-ndn-apps/"
 results_path = repo_path + "/results/"
 ns3_dir = ndn_path + "/ns-3"

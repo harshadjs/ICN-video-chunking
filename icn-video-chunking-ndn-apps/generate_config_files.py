@@ -39,7 +39,7 @@ def generate_config():
 ## main ##
 ##
 
-filename = "/home/harshad/projects/icn-video-chunking/icn-video-chunking-ndn-apps/videos.conf" 	## SET_THIS
+filename = "/home/dayoon/15744/ICN-video-chunking/icn-video-chunking-ndn-apps/videos.conf" 	## SET_THIS
 
 if len(sys.argv) != 4:
     print("Usage: %s <alpha> <max_video_size> <num_videos>\n",

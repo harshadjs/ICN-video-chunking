@@ -1,0 +1,4 @@
+Waf: Entering directory `/home/dayoon/ndnsim/ns-3/build'
+Waf: Leaving directory `/home/dayoon/ndnsim/ns-3/build'
+'build' finished successfully (1.518s)
+Command ['/home/dayoon/ndnsim/ns-3/build/scratch/scenario-1/scenario-1'] terminated with signal SIGSEGV. Run it under a debugger to get more information (./waf --run <program> --command-template="gdb --args %s <args>").
