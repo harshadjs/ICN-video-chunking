@@ -1,0 +1,17 @@
+Metrics to use
+-cash hit rate
+    can derive from log file
+
+-server load reduction
+-user experience e.g. average latency of chunks
+-congestion reduction -- number of requests traversing each edge between routers
+
+user quality of experience metrics
+-buffering ratio -> how much time the user spends buffering i.e. waiting for
+chunks, assume 
+-bit rate
+-start up time -> latency to first chunk
+
+project presentation on monday
+
+
