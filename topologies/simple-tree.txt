@@ -1,0 +1,26 @@
+
+
+# Single server, serving requests to 5 clients through a single router
+
+router
+
+# name  comment x   y
+client0 NA
+client1 NA
+client2 NA
+client3 NA
+client4 NA
+router0 NA
+server0 NA
+
+link
+
+# Each line should be in the following format (only first two are required, the
+# rest can be omitted)
+# srcNode   dstNode     bandwidth   metric  delay   queue
+server0     router0     100Mbps     1       10ms    20
+client0     router0     10Mbps      1       10ms    20
+client1     router0     10Mbps      1       10ms    20
+client2     router0     10Mbps      1       10ms    20
+client3     router0     10Mbps      1       10ms    20
+client4     router0     10Mbps      1       10ms    20
