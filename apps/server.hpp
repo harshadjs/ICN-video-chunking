@@ -23,7 +23,7 @@
 #define HIJACKER_H_
 
 #include "ns3/ndnSIM/apps/ndn-app.hpp"
-#include "icn-chunking-helper.hpp"
+#include "helper.hpp"
 
 namespace ns3 {
 

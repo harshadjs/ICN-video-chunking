@@ -22,7 +22,7 @@
 #include <string.h>
 #include <stdint.h>
 #include "ns3/ndnSIM/apps/ndn-app.hpp"
-#include "icn-chunking-helper.hpp"
+#include "helper.hpp"
 
 namespace ns3 {
 	/**
@@ -57,6 +57,8 @@ namespace ns3 {
 		// (overridden from ndn::App) Callback that will be called when Data arrives
 		virtual void
 		OnData(std::shared_ptr<const ndn::Data> contentObject);
+
+		void onChunk(void);
 
 		int read_video_file(void);
 		struct video *get_next_video(void);

@@ -1,7 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
-#include "icn-chunking-helper.hpp"
+#include "helper.hpp"
+#include "paths.h"
 
 #include "ns3/ptr.h"
 #include "ns3/log.h"
@@ -18,6 +19,7 @@ namespace ns3 {
 		memset(&this->video_state, 0, sizeof(this->video_state));
 		this->video_state.video = video;
 	}
+
 	struct video *icn_chunking_helper::get_next_video(void)
 	{
 		long unsigned val;
@@ -57,12 +59,17 @@ namespace ns3 {
 
 	int icn_chunking_helper::read_video_file(void)
 	{
-		FILE *fp = fopen("/home/harshad/projects/icn-video-chunking/icn-video-chunking-ndn-apps/videos.conf", "r"); /* SET_THIS */
+		FILE *fp = fopen(VIDEOS_CONF, "r");
+		FILE *fp_chunk = fopen(CHUNK_CONF, "r");
+		int chunk_size;
 		int popularity, access, size, count = 1;
 
 		this->video_list = NULL;
 		this->n_videos = 0;
 		this->total_views = 0;
+
+		fscanf(fp_chunk, "%d", &chunk_size);
+		fclose(fp_chunk);
 
 		while(!feof(fp)) {
 			if(fscanf(fp, "%d,%d,%d\n", &popularity, &access, &size) == 3) {
@@ -76,8 +83,8 @@ namespace ns3 {
 				this->video_list[this->n_videos].popularity = popularity;
 				this->video_list[this->n_videos].access = access;
 				this->video_list[this->n_videos].size = size;
-				this->video_list[this->n_videos].chunk_size = 10000; /* TODO */
-				this->video_list[this->n_videos].n_chunks = size/10000; /* TODO */
+				this->video_list[this->n_videos].chunk_size = chunk_size; /* TODO */
+				this->video_list[this->n_videos].n_chunks = size/chunk_size; /* TODO */
 				this->total_views += popularity;
 				this->n_videos++;
 				count++;

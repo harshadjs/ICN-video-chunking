@@ -20,8 +20,7 @@
 
 // hijacker.cpp
 
-#include "icn-chunking-server.hpp"
-
+#include "server.hpp"
 #include "ns3/log.h"
 
 #include "ns3/ndnSIM/helper/ndn-stack-helper.hpp"
@@ -64,21 +63,12 @@ icnVideoChunkingServer::OnInterest(std::shared_ptr<const ndn::Interest> interest
 
   auto data = std::make_shared<ndn::Data>(interest->getName());
   data->setFreshnessPeriod(ndn::time::seconds(1000));
-  data->setContent(std::make_shared< ::ndn::Buffer>(this->chunk_size));
+  data->setContent(std::make_shared< ::ndn::Buffer>(1000));
   ndn::StackHelper::getKeyChain().sign(*data);
 
   // Call trace (for logging purposes)
   m_transmittedDatas(data, this, m_face);
   m_face->onReceiveData(*data);
-}
-
-void icnVideoChunkingServer::set_chunk_size(void)
-{
-  FILE *fp = fopen("/home/harshad/projects/icn-video-chunking/icn-video-chunking-ndn-apps/chunk_size.conf", "r"); /* SET_THIS */
-
-  fscanf(fp, "%d", &this->chunk_size);
-
-  fclose(fp);
 }
 
 void
@@ -91,7 +81,6 @@ icnVideoChunkingServer::StartApplication()
   //  printf("P: Registered route.\n");
   this->current_video = NULL;
   this->helper.read_video_file();
-  this->set_chunk_size();
 }
 
 void

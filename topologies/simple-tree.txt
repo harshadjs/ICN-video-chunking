@@ -18,9 +18,9 @@ link
 # Each line should be in the following format (only first two are required, the
 # rest can be omitted)
 # srcNode   dstNode     bandwidth   metric  delay   queue
-server0     router0     100Mbps     1       10ms    20
-client0     router0     10Mbps      1       10ms    20
-client1     router0     10Mbps      1       10ms    20
-client2     router0     10Mbps      1       10ms    20
-client3     router0     10Mbps      1       10ms    20
-client4     router0     10Mbps      1       10ms    20
+server0     router0     10Mbps     1       10ms    20
+client0     router0     1Mbps      1       10ms    20
+client1     router0     1Mbps      1       10ms    20
+client2     router0     1Mbps      1       10ms    20
+client3     router0     1Mbps      1       10ms    20
+client4     router0     1Mbps      1       10ms    20

@@ -23,8 +23,8 @@
 #include <string.h>
 #include <time.h>
 #include "ns3/integer.h"
-#include "icn-short-names.h"
-#include "icn-chunking-client.hpp"
+#include "short-names.h"
+#include "client.hpp"
 
 #include "ns3/ptr.h"
 #include "ns3/log.h"
@@ -32,7 +32,6 @@
 #include "ns3/packet.h"
 #include <time.h>
 #include <ndn-cxx/encoding/block.hpp>
-
 
 #include "ns3/ndnSIM/helper/ndn-stack-helper.hpp"
 #include "ns3/ndnSIM/helper/ndn-fib-helper.hpp"
@@ -137,9 +136,10 @@ namespace ns3 {
 		interest->setNonce(rand.GetValue());
 		interest->setInterestLifetime(ndn::time::seconds(1));
 
-		if(STATE_VAR.current_chunk_offset == 0)
+		if(STATE_VAR.current_chunk_offset == 0) {
 			/* Only if this is a new _chunk_ */
 			THIS_CHUNK_REQ_TIME = get_time();
+		}
 
 		m_transmittedInterests(interest, this, m_face);
 
@@ -153,53 +153,44 @@ namespace ns3 {
 	void icnVideoChunkingClient::OnInterest(std::shared_ptr<const ndn::Interest> interest) {
 	}
 
-	/*
-	 * When Data arrives: Lot of stuff to do!
-	 */
-	void
-	icnVideoChunkingClient::OnData(std::shared_ptr<const ndn::Data> data)
+
+	void icnVideoChunkingClient::onChunk(void)
 	{
 		uint32_t buffering_time;
 
-		ndn::Block block = data->getContent();
-		std::cout << "Received " << data->getName() << std::endl;
-
-		STATE_VAR.current_chunk_offset += block.value_size();
-		CURRENT_OFFSET += block.value_size();
-
-		std::cout << CURRENT_OFFSET << "/" << STATE_VAR.video->size << std::endl;
-
-
-		if(STATE_VAR.current_chunk_offset >= STATE_VAR.video->chunk_size) {
-			STATE_VAR.current_chunk++;
-			STATE_VAR.current_chunk_offset = 0;
-		} else {
-			Simulator::Schedule(Seconds(0.0), &icnVideoChunkingClient::SendInterest, this);
-			return;
+		if(STATE_VAR.current_chunk % 10 == 0) {
+			printf("[Client %lu]\t%d/%d\n",
+				   this->client_id,
+				   STATE_VAR.current_chunk,
+				   STATE_VAR.video->n_chunks);
 		}
-		std::cout << "Chunk Finished." << std::endl;
 
-		fprintf(this->log_fp, "%lu, %lu, %lu, %lu\n",
-				this->helper.video_state.video->index,
-				TOTAL_START_TIME, TOTAL_VIEW_TIME,
-				TOTAL_BUFFERING_TIME);
+//		std::cout << "Chunk Finished." << std::endl;
+
+		// fprintf(this->log_fp, "%lu, %lu, %lu, %lu\n",
+		// 		this->helper.video_state.video->index,
+		// 		TOTAL_START_TIME, TOTAL_VIEW_TIME,
+		// 		TOTAL_BUFFERING_TIME);
 //			fprintf(this->log_fp, ".");
 
 		/* Buffering time for this chunk */
 		buffering_time = get_time() - THIS_CHUNK_REQ_TIME;
 
+		/* Calculate video start time */
 		if(LAST_CHUNK_VIEW_TIME == 0) {
-			/* This is the first chunk */
 			TOTAL_START_TIME += buffering_time;
 		}
 
+//		printf("buffering = %Lu, Last view = %Lu\n", buffering_time, LAST_CHUNK_VIEW_TIME);
+		/* Calculate buffering time */
 		if(buffering_time > LAST_CHUNK_VIEW_TIME) {
 			TOTAL_BUFFERING_TIME += buffering_time - LAST_CHUNK_VIEW_TIME;
 		}
-		LAST_CHUNK_VIEW_TIME = block.value_size();
+
+		LAST_CHUNK_VIEW_TIME = STATE_VAR.video->chunk_size * 5;
 		/* ^^ Assumes constant 360p bitrate */
-		/* Approx 5 minute ==> 10 Mb */
-		/* 2 * 1024 * 1024 bytes ==> 60 seconds */
+		/* Approx 5 minute ==> 15 Mb */
+		/* 3 * 1024 * 1024 bytes ==> 60 * 1000 * 1000 us */
 
 		TOTAL_VIEW_TIME += LAST_CHUNK_VIEW_TIME;
 		if(CURRENT_OFFSET >= this->helper.video_state.video->size) {
@@ -214,8 +205,35 @@ namespace ns3 {
 			this->helper.video_state.active = 0;
 			Simulator::Schedule(Seconds(1.0), &icnVideoChunkingClient::SendInterest, this);
 		} else {
-			Simulator::Schedule(Seconds(0.0), &icnVideoChunkingClient::SendInterest, this);
+			icnVideoChunkingClient::SendInterest();
+//			Simulator::Schedule(Seconds(0.0), &icnVideoChunkingClient::SendInterest, this);
 		}
 		fflush(this->log_fp);
+	}
+
+	/*
+	 * When Data arrives: Lot of stuff to do!
+	 */
+	void
+	icnVideoChunkingClient::OnData(std::shared_ptr<const ndn::Data> data)
+	{
+
+		ndn::Block block = data->getContent();
+//		std::cout << "Received " << data->getName() << std::endl;
+
+		STATE_VAR.current_chunk_offset += block.value_size();
+		CURRENT_OFFSET += block.value_size();
+
+//		std::cout << CURRENT_OFFSET << "/" << STATE_VAR.video->size << std::endl;
+
+		if(STATE_VAR.current_chunk_offset >= STATE_VAR.video->chunk_size) {
+			STATE_VAR.current_chunk++;
+			STATE_VAR.current_chunk_offset = 0;
+			icnVideoChunkingClient::onChunk();
+		} else {
+			icnVideoChunkingClient::SendInterest();
+//			Simulator::Schedule(Seconds(0.0), &icnVideoChunkingClient::SendInterest, this);
+			return;
+		}
 	}
 }

@@ -111,7 +111,7 @@ namespace ns3 {
 		// Calculate and install FIBs
 		ndn::GlobalRoutingHelper::CalculateRoutes();
 
-		Simulator::Stop(Seconds(600));
+		Simulator::Stop(Seconds(6000));
 
 		// Create traces for each router
 		for (int i = 0; i < NUM_ROUTERS; i++) {
