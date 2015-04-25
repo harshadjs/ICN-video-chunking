@@ -71,8 +71,7 @@ def run_experiment(num, alpha, num_videos, max_size):
 ndn_path = "/home/harshad/projects/ndn" 			## SET_THIS
 repo_path = "/home/harshad/projects/icn-video-chunking/" 	## SET_THIS
 
-ndn_app_path = "/home/harshad/projects/icn-video-chunking/" + \
-               "icn-video-chunking-ndn-apps/"
+ndn_app_path = repo_path + "icn-video-chunking-ndn-apps/"
 results_path = repo_path + "/results/"
 ns3_dir = ndn_path + "/ns-3"
 verbose = 0

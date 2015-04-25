@@ -55,7 +55,7 @@ icnVideoChunkingServer::OnInterest(std::shared_ptr<const ndn::Interest> interest
 
   ndn::App::OnInterest(interest);
 
-  std::cout << "P:[Interest]\t<==" << interest->getName() << std::endl;
+  //  std::cout << "P:[Interest]\t<==" << interest->getName() << std::endl;
 
   // Note that Interests send out by the app will not be sent back to the app !
 
@@ -87,7 +87,7 @@ icnVideoChunkingServer::StartApplication()
 
   // equivalent to setting interest filter for "/prefix" prefix
   ndn::FibHelper::AddRoute(GetNode(), "/prefix/sub", m_face, 0);
-  printf("P: Registered route.\n");
+  //  printf("P: Registered route.\n");
   this->current_video = NULL;
   this->helper.read_video_file();
   this->set_chunk_size();

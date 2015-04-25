@@ -25,7 +25,7 @@ def generate_config():
     count = 1
     for pop in pop_array_sorted:
         video_name = ("video_%d" % count)
-        my_video = video(video_name, pop, 1, int(numpy.random.uniform(0.0, 30720.0)))
+        my_video = video(video_name, pop, 1, int(numpy.random.uniform(0.0, video_max_size)))
         video_list.append(my_video)
         count = count + 1
 
@@ -46,6 +46,6 @@ if len(sys.argv) != 4:
           sys.argv[0])
 else:
     alpha = float(sys.argv[1])
-    video_max_size = int(sys.argv[2]) * 1024
+    video_max_size = int(sys.argv[2]) * 1024 * 1024
     num_videos = int(sys.argv[3])
     generate_config()
