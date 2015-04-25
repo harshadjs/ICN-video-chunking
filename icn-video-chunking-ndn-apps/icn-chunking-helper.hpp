@@ -12,6 +12,8 @@ namespace ns3 {
 		uint32_t access;		/* Access distribution - UNUSED */
 		uint32_t size;			/* Video Size */
 		uint32_t index;			/* Index of the video */
+		uint32_t chunk_size;
+		uint32_t n_chunks;
 	};
 
 	/*
@@ -35,6 +37,9 @@ namespace ns3 {
 		uint32_t current_offset;		/* Total bytes watched */
 		uint64_t this_chunk_req_time;	/* Time when last chunk was requested */
 		uint64_t last_chunk_view_time;	/* Total view time last chunk */
+		uint32_t current_chunk;
+		uint32_t current_chunk_offset;
+
 		uint32_t nchunks;
 		/* uint8_t access_dist; */
 	};
@@ -55,14 +60,12 @@ namespace ns3 {
 		struct video *video_list;
 		int n_videos;
 		int total_views;
+		uint32_t chunk_size;
 
 		int read_video_file(void);
 		struct video *get_next_video(void);
 		struct video *lookup_video(const char *name);
-		void new_video_started(void) {
-			memset(&this->video_state, 0, sizeof(this->video_state));
-		}
-
+		void new_video_started(struct video *video);
 	};
 
 } // namespace ns3

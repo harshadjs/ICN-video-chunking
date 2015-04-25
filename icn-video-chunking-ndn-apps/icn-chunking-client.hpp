@@ -67,6 +67,7 @@ namespace ns3 {
 		uint32_t client_id;
 		ns3::icn_chunking_helper helper;
 		void SendInterest();
+		void Retransmit(void);
 	};
 } // namespace ns3
 

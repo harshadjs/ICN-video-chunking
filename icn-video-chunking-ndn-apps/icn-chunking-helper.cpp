@@ -14,6 +14,10 @@
 
 namespace ns3 {
 
+	void icn_chunking_helper::new_video_started(struct video *video) {
+		memset(&this->video_state, 0, sizeof(this->video_state));
+		this->video_state.video = video;
+	}
 	struct video *icn_chunking_helper::get_next_video(void)
 	{
 		long unsigned val;
@@ -64,13 +68,16 @@ namespace ns3 {
 			if(fscanf(fp, "%d,%d,%d\n", &popularity, &access, &size) == 3) {
 				//     printf("video_%d, %d, %d, %d\n", count, popularity, access, size);
 				//printf("this->n_videos = %d\n", this->n_videos);
-				this->video_list = (struct video *) realloc((void *)this->video_list,
-															(this->n_videos + 1) * sizeof(struct video));
+				this->video_list = (struct video *)
+					realloc((void *)this->video_list,
+							(this->n_videos + 1) * sizeof(struct video));
 
 				this->video_list[this->n_videos].index = count;
 				this->video_list[this->n_videos].popularity = popularity;
 				this->video_list[this->n_videos].access = access;
 				this->video_list[this->n_videos].size = size;
+				this->video_list[this->n_videos].chunk_size = 10000; /* TODO */
+				this->video_list[this->n_videos].n_chunks = size/10000; /* TODO */
 				this->total_views += popularity;
 				this->n_videos++;
 				count++;

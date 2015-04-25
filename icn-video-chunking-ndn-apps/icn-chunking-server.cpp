@@ -1,3 +1,4 @@
+
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /**
  * Copyright (c) 2011-2015  Regents of the University of California.
@@ -55,7 +56,7 @@ icnVideoChunkingServer::OnInterest(std::shared_ptr<const ndn::Interest> interest
 
   ndn::App::OnInterest(interest);
 
-  //  std::cout << "P:[Interest]\t<==" << interest->getName() << std::endl;
+//  std::cout << "Producer received interest " << interest->getName() << std::endl;
 
   // Note that Interests send out by the app will not be sent back to the app !
 

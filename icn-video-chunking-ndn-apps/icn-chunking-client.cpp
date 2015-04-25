@@ -99,6 +99,16 @@ namespace ns3 {
 		ndn::App::StopApplication();
 	}
 
+
+	void
+	icnVideoChunkingClient::Retransmit() {
+		uint64_t current_time = get_time();
+
+		if(current_time - THIS_CHUNK_REQ_TIME > 4500000) {
+			fprintf(stderr, "TIMEDOUT :(((((((((((((((((((((((\n");
+		}
+	}
+
 	void
 	icnVideoChunkingClient::SendInterest()
 	{
@@ -107,30 +117,34 @@ namespace ns3 {
 		UniformVariable rand(0, std::numeric_limits<uint32_t>::max());
 
 		if(this->helper.video_state.active == 1) {
-			sprintf(interest_name, "/prefix/sub/video_%d/%d",
-					this->helper.video_state.video->index, this->helper.video_state.current_offset);
+			sprintf(interest_name, "/prefix/sub/video_%d/%d/%d",
+					this->helper.video_state.video->index,
+					this->helper.video_state.current_chunk,
+					this->helper.video_state.current_chunk_offset);
 		} else {
 			video = this->helper.get_next_video();
-			this->helper.new_video_started();
-			this->helper.video_state.video = video;
-			sprintf(interest_name, "/prefix/sub/video_%d/%d",
+			this->helper.new_video_started(video);
+			sprintf(interest_name, "/prefix/sub/video_%d/%d/%d",
 					this->helper.video_state.video->index,
-					this->helper.video_state.current_offset);
+					this->helper.video_state.current_chunk,
+					this->helper.video_state.current_chunk_offset);
 			this->helper.video_state.active = 1;
-#if 0
-			fprintf(this->log_fp, "Watching video %d ", video->index);
-#endif
+//			fprintf(stderr, "Watching video %d ", video->index);
 		}
 
+//		fprintf(stderr, "Client sent interest %s\n", interest_name);
 		auto interest = std::make_shared<ndn::Interest>(interest_name);
 		interest->setNonce(rand.GetValue());
-		interest->setInterestLifetime(ndn::time::seconds(10));
+		interest->setInterestLifetime(ndn::time::seconds(1));
 
-		THIS_CHUNK_REQ_TIME = get_time();
+		if(STATE_VAR.current_chunk_offset == 0)
+			/* Only if this is a new _chunk_ */
+			THIS_CHUNK_REQ_TIME = get_time();
 
 		m_transmittedInterests(interest, this, m_face);
 
 		m_face->onReceiveInterest(*interest);
+	//	Simulator::Schedule(Seconds(5.0), &icnVideoChunkingClient::Retransmit, this);
 		fflush(this->log_fp);
 	}
 
@@ -145,14 +159,26 @@ namespace ns3 {
 	void
 	icnVideoChunkingClient::OnData(std::shared_ptr<const ndn::Data> data)
 	{
-		return;
 		uint32_t buffering_time;
 
 		ndn::Block block = data->getContent();
-		// std::cout << "C:[DATA]\t<--" << data->getName() << " Size:" 
-		// 		  << block.value_size() << std::endl;
+		std::cout << "Received " << data->getName() << std::endl;
 
-		NCHUNKS++;
+		STATE_VAR.current_chunk_offset += block.value_size();
+		CURRENT_OFFSET += block.value_size();
+
+		std::cout << CURRENT_OFFSET << "/" << STATE_VAR.video->size << std::endl;
+
+
+		if(STATE_VAR.current_chunk_offset >= STATE_VAR.video->chunk_size) {
+			STATE_VAR.current_chunk++;
+			STATE_VAR.current_chunk_offset = 0;
+		} else {
+			Simulator::Schedule(Seconds(0.0), &icnVideoChunkingClient::SendInterest, this);
+			return;
+		}
+		std::cout << "Chunk Finished." << std::endl;
+
 		fprintf(this->log_fp, "%lu, %lu, %lu, %lu\n",
 				this->helper.video_state.video->index,
 				TOTAL_START_TIME, TOTAL_VIEW_TIME,
@@ -176,9 +202,6 @@ namespace ns3 {
 		/* 2 * 1024 * 1024 bytes ==> 60 seconds */
 
 		TOTAL_VIEW_TIME += LAST_CHUNK_VIEW_TIME;
-
-		CURRENT_OFFSET += block.value_size();
-
 		if(CURRENT_OFFSET >= this->helper.video_state.video->size) {
 			/* New video starts here: TODO Wait time distribution? */
 #if 0
@@ -188,7 +211,6 @@ namespace ns3 {
 					this->helper.video_state.video->index,
 					TOTAL_START_TIME, TOTAL_VIEW_TIME,
 					TOTAL_BUFFERING_TIME);
-
 			this->helper.video_state.active = 0;
 			Simulator::Schedule(Seconds(1.0), &icnVideoChunkingClient::SendInterest, this);
 		} else {
