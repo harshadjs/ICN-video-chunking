@@ -3,27 +3,67 @@ import os
 import sys
 import errno
 import shutil
+import argparse
+import graph
 
-chunk_sizes = [100, 1000]
+chunk_sizes = [1000, 2000, 5000, 10000, 20000, 50000]
+#chunk_sizes = [2000]
+
+exclude_scenarios = ["scenario-1", "scenario-2"]
+
+def draw_graphs(results_path):
+    graph.draw(results_path)
 
 def log(string, end = "\n"):
     print(string, end = end, flush = True)
+
+def mkdir(path):
+    try:
+        os.mkdir(path)
+    except OSError as e:
+        if e.errno != errno.EEXIST:
+            raise e
+
+
+def run_scenario(exp_result_path, scenario, chunk_size):
+    chunk_exp_result_path = exp_result_path + "/" + str(chunk_size)
+
+    log("Running [%s@%d] ... " % (scenario, chunk_size), end = "")
+    with open(ndn_app_path + "/chunk.conf", "w") as fobj:
+        fobj.write("%d" % chunk_size)
+    fobj.close()
+
+    cmd = "NS_LOG=icnVideoChunkingClient:icnVideoChunkingServer " + \
+          ndn_path + "/ns-3/waf --run=" + scenario
+    if verbose == 0:
+        cmd = cmd + " > /tmp/waf.log 2>&1"
+
+    os.system(cmd)
+    mkdir(chunk_exp_result_path)
+    log("\t[DONE]")
+    os.system("mv /tmp/waf.log " + chunk_exp_result_path \
+              + "/waf-%s-%s.log" % (scenario, chunk_size))
+
+    os.system("mv " + ns3_dir + "/cs-trace-router*.txt " + chunk_exp_result_path)
+    os.system("mv " + ns3_dir + "/client*logs.txt " + chunk_exp_result_path)
+    os.system("mv " + ns3_dir + "/server*logs.txt " + chunk_exp_result_path)
+
 
 def run_experiment(num, alpha, num_videos, max_size):
     print("New experiment started with configuration ", end = "")
     print("[alpha = " + str(alpha) + ", num = " + str(num_videos) + \
           ", siz = " + str(max_size) + "]")
-    os.system(ndn_app_path + "generate_config_files.py " \
-              + str(alpha) + " " + str(num_videos) + " " + str(max_size))
+    os.system(ndn_app_path + "generate_config_files.py -a " \
+              + str(alpha) + " -n " + str(num_videos) + " -s " + str(max_size) \
+              + " -c 5")
 
     for filename in os.listdir(scenarios_path):
-        exp_result_path = results_path + "/" + str(num)
-        try:
-            os.mkdir(exp_result_path)
-        except OSError as e:
-            if e.errno != errno.EEXIST:
-                raise e
+        if filename in exclude_scenarios:
+            log("Skipping " + filename)
+            continue
 
+        exp_result_path = results_path + "/" + str(num)
+        mkdir(exp_result_path)
         shutil.copy(ndn_app_path + "videos.conf", exp_result_path)
         with open(exp_result_path + "/experiment.conf", 'w') as fobj:
             fobj.write("alpha = " + str(alpha) + "\n")
@@ -31,60 +71,46 @@ def run_experiment(num, alpha, num_videos, max_size):
             fobj.write("max_size = " + str(max_size) + "\n")
 
         fobj.close()
-
         for chunk_size in chunk_sizes:
-            log("Running [%s@%d] ... " % (filename, chunk_size), end = "")
-
-            with open(ndn_app_path + "/chunk_size.conf", "w") as fobj:
-                fobj.write("%d" % chunk_size)
-            fobj.close()
-
-            cmd = "NS_LOG=icnVideoChunkingClient:icnVideoChunkingServer " + \
-                  ndn_path + "/ns-3/waf --run=" + filename
-            if verbose == 0:
-                cmd = cmd + " > /tmp/waf.log 2>&1"
-            else:
-                print("")
-
-            os.system(cmd)
-
-            log("\t[DONE]", end = "")
-
-            try:
-                shutil.move("/tmp/waf.log", exp_result_path \
-                            + "/waf-%s-%s.log" % (filename, chunk_size))
-                shutil.move(ns3_dir + "/cs-trace.txt", \
-                            exp_result_path + "/cs-trace-%s-%s.txt" \
-                            % (filename, chunk_size))
-            except OSError as e:
-                if e.errno != errno.ENOENT:
-                    raise e
-                else:
-                    log("\t(!WARNING! This run did not produce cs-trace.txt)", end = "")
-            log("")
+            run_scenario(exp_result_path, filename, chunk_size)
 
 ##
 ## main
 ##
 
+parser = argparse.ArgumentParser(description="ICN Video chunking Testsuite.")
+parser.add_argument("-v", "--verbose", help="Verbose mode ON",
+                    action="store_true")
+parser.add_argument("-f", "--flush", help="Flush all old results",
+                    action="store_true")
+parser.add_argument("-g", "--graph", help="Draw graphs only (Don't run tests)",
+                    action="store_true")
+args = parser.parse_args()
 
 ndn_path = "/home/harshad/projects/ndn" 			## SET_THIS
 repo_path = "/home/harshad/projects/icn-video-chunking/" 	## SET_THIS
 
-ndn_app_path = repo_path + "icn-video-chunking-ndn-apps/"
+ndn_app_path = repo_path + "apps/"
 results_path = repo_path + "/results/"
 ns3_dir = ndn_path + "/ns-3"
 verbose = 0
 
-range_alpha = [2.0, 2.1, 0.1]
-range_num = [100, 102, 1]
-range_size = [30720, 30721, 1]
+if args.verbose:
+    verbose = 1
+
+if args.graph:
+    draw_graphs(results_path)
+    exit(0)
+
+if args.flush:
+    os.system("rm -rf " + repo_path + "/results/*")
+    print("Flushed all old results.")
+
+range_alpha = [2.0, 2.0, 0.1]
+range_num = [100, 101, 1]
+range_size = [30, 31, 1]
 
 scenarios_path = repo_path + "/scenarios"
-
-if len(sys.argv) >= 2:
-    if sys.argv[1] == "-v":
-        verbose = 1
 
 os.chdir(ns3_dir)
 
@@ -98,6 +124,8 @@ while alpha <= range_alpha[1]:
             experiment_num = experiment_num + 1
 
     alpha = alpha + range_alpha[2]
+log("Drawing graphs...")
+draw_graphs(results_path)
 
 
 
