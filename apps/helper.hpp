@@ -8,8 +8,6 @@ namespace ns3 {
 	 * A video
 	 */
 	struct video {
-		uint32_t popularity;	/* Drawn from zipf */
-		uint32_t access;		/* Access distribution - UNUSED */
 		uint32_t size;			/* Video Size */
 		uint32_t index;			/* Index of the video */
 		uint32_t chunk_size;
@@ -41,7 +39,16 @@ namespace ns3 {
 		uint32_t current_chunk_offset;
 
 		uint32_t nchunks;
+		uint64_t this_chunk_total_rtt;
+		uint64_t last_pkt_req_time;
+		uint64_t num_pkts_in_this_chunk;
+		float frac_video;
 		/* uint8_t access_dist; */
+	};
+
+	struct video_access {
+		int index;
+		float frac_video;
 	};
 
 	enum {
@@ -58,14 +65,17 @@ namespace ns3 {
 		int video_access_dist;
 		int video_size_dist;
 		struct video *video_list;
+		struct video_access video_access[500];
+		int next_access_index;
 		int n_videos;
-		int total_views;
+		int client_id;
 		uint32_t chunk_size;
 
 		int read_video_file(void);
 		struct video *get_next_video(void);
 		struct video *lookup_video(const char *name);
 		void new_video_started(struct video *video);
+		void set_client_id(int id);
 	};
 
 } // namespace ns3

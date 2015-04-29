@@ -22,30 +22,30 @@ namespace ns3 {
 
 	struct video *icn_chunking_helper::get_next_video(void)
 	{
-		long unsigned val;
-		int i, passed;
-		struct video *video;
+		return &this->video_list[this->video_access[(this->next_access_index++) % 500].index];
 
-		val = random() % this->total_views;
+// 		long unsigned val;
+// 		int i, passed;
+// 		struct video *video;
 
-//		printf("val = %lu, this->total_views = %lu\n", val, this->total_views);
-		passed = 0;
-		for(i = 0; i < this->n_videos; i++) {
-			video = &this->video_list[i];
-			passed += video->popularity;
-			if(val < passed) {
-				return video;
-			}
-		}
+// 		val = random() % this->total_views;
 
-		return video;
+//  	printf("val = %lu, this->total_views = %lu\n", val, this->total_views);
+// 		passed = 0;
+// 		for(i = 0; i < this->n_videos; i++) {
+// 			video = &this->video_list[i];
+// 			passed += video->popularity;
+// 			if(val < passed) {
+// 				return video;
+// 			}
+// 		}
 	}
 
 	struct video *icn_chunking_helper::lookup_video(const char *name)
 	{
 		int i;
 		struct video *video;
-		int index = strtol(name, NULL, 10);
+		uint32_t index = strtol(name, NULL, 10);
 
 		for(i = 0; i < this->n_videos; i++) {
 			video = &this->video_list[i];
@@ -57,22 +57,29 @@ namespace ns3 {
 		return video;
 	}
 
+	void icn_chunking_helper::set_client_id(int id)
+	{
+		this->client_id = id;
+	}
+
 	int icn_chunking_helper::read_video_file(void)
 	{
 		FILE *fp = fopen(VIDEOS_CONF, "r");
 		FILE *fp_chunk = fopen(CHUNK_CONF, "r");
-		int chunk_size;
-		int popularity, access, size, count = 1;
+		FILE *fp_access;
+		char filename[256];
+		float frac_video;
+		int chunk_size, access;
+		int index, dummy, size, count = 1;
 
 		this->video_list = NULL;
 		this->n_videos = 0;
-		this->total_views = 0;
 
 		fscanf(fp_chunk, "%d", &chunk_size);
 		fclose(fp_chunk);
 
 		while(!feof(fp)) {
-			if(fscanf(fp, "%d,%d,%d\n", &popularity, &access, &size) == 3) {
+			if(fscanf(fp, "%d,%d,%d\n", &index, &size, &dummy) == 3) {
 				//     printf("video_%d, %d, %d, %d\n", count, popularity, access, size);
 				//printf("this->n_videos = %d\n", this->n_videos);
 				this->video_list = (struct video *)
@@ -80,20 +87,31 @@ namespace ns3 {
 							(this->n_videos + 1) * sizeof(struct video));
 
 				this->video_list[this->n_videos].index = count;
-				this->video_list[this->n_videos].popularity = popularity;
-				this->video_list[this->n_videos].access = access;
 				this->video_list[this->n_videos].size = size;
 				this->video_list[this->n_videos].chunk_size = chunk_size; /* TODO */
 				this->video_list[this->n_videos].n_chunks = size/chunk_size; /* TODO */
-				this->total_views += popularity;
 				this->n_videos++;
 				count++;
 			}
 		}
 		fclose(fp);
 
-		srandom((unsigned int)clock());
+		count = 0;
+		printf("Reading client-%d.trace\n", this->client_id);
+		sprintf(filename, "%s/client-%d.trace", APPS_PATH, this->client_id);
+		fp_access = fopen(filename, "r");
+		while(!feof(fp_access)) {
+			if(fscanf(fp_access, "%d,%f", &access, &frac_video) != 2)
+				continue;
+			this->video_access[count].index = access;
+			this->video_access[count].frac_video = frac_video;
+			count++;
+		}
+		fclose(fp_access);
 
+		this->next_access_index = 0;
+
+		srandom((unsigned int)clock());
 		return 0;
 	}
 

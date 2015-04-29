@@ -54,6 +54,8 @@ namespace ns3 {
 		virtual void
 		OnInterest(std::shared_ptr<const ndn::Interest> interest);
 
+		int shouldQuitEarly(void);
+
 		// (overridden from ndn::App) Callback that will be called when Data arrives
 		virtual void
 		OnData(std::shared_ptr<const ndn::Data> contentObject);
@@ -70,6 +72,7 @@ namespace ns3 {
 		ns3::icn_chunking_helper helper;
 		void SendInterest();
 		void Retransmit(void);
+		void dumpStats(void);
 	};
 } // namespace ns3
 

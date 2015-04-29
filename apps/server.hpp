@@ -22,15 +22,15 @@
 #ifndef HIJACKER_H_
 #define HIJACKER_H_
 
+#include <stdint.h>
 #include "ns3/ndnSIM/apps/ndn-app.hpp"
-#include "helper.hpp"
 
 namespace ns3 {
 
 class icnVideoChunkingServer : public ndn::App {
 public:
-  static TypeId
-  GetTypeId();
+  static TypeId GetTypeId();
+  uint32_t server_id;
   struct video *current_video;
   icnVideoChunkingServer();
 
@@ -40,9 +40,9 @@ public:
   void set_chunk_size(void);
 
 protected:
-  int chunk_size;
-  ns3::icn_chunking_helper helper;
+  uint64_t total_bytes_served;
   // inherited from Application base class.
+  void dumpStats(void);
   virtual void
   StartApplication();
 

@@ -26,7 +26,8 @@
 #define NUM_CLIENTS 5
 #define NUM_ROUTERS 1
 #define NUM_SERVERS 1
-#define CACHE_SIZE  (1024 * 1024 * 1024)
+#define CACHE_SIZE  (9 * 1024 * 1024)
+
 namespace ns3 {
 
 /**
@@ -40,12 +41,15 @@ namespace ns3 {
 		cmd.Parse(argc, argv);
 
 		// read nodes from topology file
+//		Config::SetDefault("ns3::PointToPointNetDevice::Mtu", UintegerValue(10000));
+
 		AnnotatedTopologyReader topologyReader("", 1);
 		topologyReader.SetFileName("topologies/simple-tree.txt");
 		topologyReader.Read();
 
 		// Install NDN stack on all nodes
 		ndn::StackHelper ndnHelper;
+//		ndnHelper.SetOldContentStore("ns3::ndn::cs::Chunked");
 		ndnHelper.SetOldContentStore("ns3::ndn::cs::Lru");
 		ndnHelper.InstallAll();
 
@@ -111,7 +115,7 @@ namespace ns3 {
 		// Calculate and install FIBs
 		ndn::GlobalRoutingHelper::CalculateRoutes();
 
-		Simulator::Stop(Seconds(6000));
+		Simulator::Stop(Seconds(1500));
 
 		// Create traces for each router
 		for (int i = 0; i < NUM_ROUTERS; i++) {

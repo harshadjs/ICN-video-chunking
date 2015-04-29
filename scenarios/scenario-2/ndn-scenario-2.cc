@@ -78,7 +78,7 @@ main(int argc, char* argv[])
   // consumerHelper.Install (nodes.Get (0)); // first node
   ndn::AppHelper app1("icnVideoChunkingClient");
   app1.Install(nodes.Get(0));
-
+  app1.SetAttribute("ClientId", IntegerValue(0));
 
   /* Producer */
   // ndn::AppHelper producerHelper ("ns3::ndn::Producer");

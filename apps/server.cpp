@@ -22,6 +22,7 @@
 
 #include "server.hpp"
 #include "ns3/log.h"
+#include "ns3/integer.h"
 
 #include "ns3/ndnSIM/helper/ndn-stack-helper.hpp"
 #include "ns3/ndnSIM/helper/ndn-fib-helper.hpp"
@@ -36,8 +37,13 @@ NS_OBJECT_ENSURE_REGISTERED(icnVideoChunkingServer);
 TypeId
 icnVideoChunkingServer::GetTypeId()
 {
-  static TypeId tid = TypeId("icnVideoChunkingServer").SetParent<ndn::App>().AddConstructor<icnVideoChunkingServer>();
-
+  static TypeId tid = TypeId("icnVideoChunkingServer")
+	  .SetParent<ndn::App>()
+	  .AddConstructor<icnVideoChunkingServer>()
+	  .AddAttribute("ServerId","ServerId",
+					IntegerValue(0),
+					MakeIntegerAccessor(&icnVideoChunkingServer::server_id),
+					MakeIntegerChecker<uint32_t>());
   return tid;
 }
 
@@ -48,7 +54,6 @@ icnVideoChunkingServer::icnVideoChunkingServer()
 void
 icnVideoChunkingServer::OnInterest(std::shared_ptr<const ndn::Interest> interest)
 {
-  struct video *video;
   // ndn::App::OnInterest(interest); // forward call to perform app-level tracing
   // // do nothing else (hijack interest)
   // NS_LOG_DEBUG("Do nothing for incoming interest for" << interest->getName());
@@ -59,16 +64,31 @@ icnVideoChunkingServer::OnInterest(std::shared_ptr<const ndn::Interest> interest
 
   // Note that Interests send out by the app will not be sent back to the app !
 
-  video = this->helper.lookup_video(interest->getName().toUri().c_str());
-
   auto data = std::make_shared<ndn::Data>(interest->getName());
+
   data->setFreshnessPeriod(ndn::time::seconds(1000));
+  this->total_bytes_served += 1000;
   data->setContent(std::make_shared< ::ndn::Buffer>(1000));
   ndn::StackHelper::getKeyChain().sign(*data);
 
   // Call trace (for logging purposes)
   m_transmittedDatas(data, this, m_face);
   m_face->onReceiveData(*data);
+  // Call trace (for logging purposes)
+
+//  printf("OnInterest\n");
+}
+
+void icnVideoChunkingServer::dumpStats(void)
+{
+	char filename[512];
+	FILE *fp;
+
+	sprintf(filename, "server-%d-logs.txt", this->server_id);
+	fp = fopen(filename, "w");
+	fprintf(fp, "%Lu", this->total_bytes_served);
+	fclose(fp);
+	Simulator::Schedule(Seconds(1.0), &icnVideoChunkingServer::dumpStats, this);
 }
 
 void
@@ -76,11 +96,11 @@ icnVideoChunkingServer::StartApplication()
 {
   App::StartApplication();
 
+  this->total_bytes_served = 0;
   // equivalent to setting interest filter for "/prefix" prefix
   ndn::FibHelper::AddRoute(GetNode(), "/prefix/sub", m_face, 0);
   //  printf("P: Registered route.\n");
-  this->current_video = NULL;
-  this->helper.read_video_file();
+  Simulator::Schedule(Seconds(1.0), &icnVideoChunkingServer::dumpStats, this);
 }
 
 void
