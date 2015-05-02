@@ -30,7 +30,13 @@
 #define ROUTER_NODE 5
 #define SERVER_NODE 6
 #define CACHE_SIZE  1000
+#define SIMULATION_TIME 60
+
 namespace ns3 {
+
+Ptr<Node> router;
+FILE* pit_fp;
+void printPIT();
 
 /**
  * This scenario simulates a one server, one router, 5 client node tree.
@@ -105,7 +111,7 @@ main(int argc, char* argv[])
   ndnGlobalRoutingHelper.AddOrigins(prefix, server);
 
   /* Routers */
-  Ptr<Node> router = nodes.Get(ROUTER_NODE);
+  router = nodes.Get(ROUTER_NODE);
 
   // Set cache size to defined size
   char configstr2[100];
@@ -115,18 +121,35 @@ main(int argc, char* argv[])
   // Calculate and install FIBs
   ndn::GlobalRoutingHelper::CalculateRoutes();
 
-  Simulator::Stop(Seconds(60));
+  Simulator::Stop(Seconds(SIMULATION_TIME));
 
   // Create traces for each router
   char buffer[30];
   sprintf(buffer, "cs-trace-router.txt");
   ndn::CsTracer::Install(router, buffer, Seconds(1));
 
+  // Print out pit state every second
+  pit_fp = fopen("pit-log.txt", "w");
+  for (int i = 0; i < SIMULATION_TIME; i++) {
+    Simulator::Schedule(Seconds(i), printPIT);
+  }
+
   Simulator::Run();
   Simulator::Destroy();
+  fclose(pit_fp);
 
   return 0;
 }
+
+// PIT tracker
+void printPIT()
+{
+  Time simTime = Simulator::Now();
+  auto pitSize = router->GetObject<ndn::L3Protocol>()->getForwarder()->getPit().size();
+  fprintf(pit_fp, "%f: %d\n", simTime.GetSeconds(), pitSize);
+}
+
+
 
 } // namespace ns3
 
