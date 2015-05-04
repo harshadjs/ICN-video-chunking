@@ -22,6 +22,8 @@ namespace ns3 {
 		uint64_t total_start_time;		/* Total start time */
 		uint64_t total_view_time;		/* Time spent in watching the video */
 		uint32_t total_views;			/* Number of videos watched */
+        uint32_t total_requests;        /* Number of interests sent */
+        uint64_t total_response_time;   /* Time all of the interests took */
 	};
 
 	/*

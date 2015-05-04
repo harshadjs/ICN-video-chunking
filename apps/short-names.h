@@ -15,5 +15,7 @@
 #define TOTAL_START_TIME STATS_VAR.total_start_time
 #define TOTAL_VIEW_TIME STATS_VAR.total_view_time
 #define TOTAL_VIEWS STATS_VAR.total_views
+#define TOTAL_REQUESTS STATS_VAR.total_requests
+#define TOTAL_RESPONSE_TIME STATS_VAR.total_response_time
 
 #endif
