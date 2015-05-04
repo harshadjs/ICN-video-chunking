@@ -29,7 +29,7 @@
 #define NUM_SERVERS 1
 #define ROUTER_NODE 5
 #define SERVER_NODE 6
-#define CACHE_SIZE  1000
+#define CACHE_SIZE  100    // in mb
 #define SIMULATION_TIME 60
 
 namespace ns3 {
@@ -37,6 +37,7 @@ namespace ns3 {
 Ptr<Node> router;
 FILE* pit_fp;
 void printPIT();
+int chunk_size = -1;
 
 /**
  * This scenario simulates a one server, one router, 5 client node tree.
@@ -46,6 +47,7 @@ main(int argc, char* argv[])
 {
   // Read optional command-line parameters (e.g., enable visualizer with ./waf --run=<> --visualize
   CommandLine cmd;
+  cmd.AddValue ("chunkSize", "Size of chunks to use", chunk_size);
   cmd.Parse(argc, argv);
 
   // read nodes from topology file
@@ -116,7 +118,7 @@ main(int argc, char* argv[])
   // Set cache size to defined size
   char configstr2[100];
   sprintf(configstr2, "/NodeList/%d/$ns3::ndn::ContentStore/MaxSize", router->GetId());
-  Config::Set (configstr2, UintegerValue (CACHE_SIZE));
+  Config::Set (configstr2, UintegerValue (CACHE_SIZE * 1024 * 1024 / chunk_size));
 
   // Calculate and install FIBs
   ndn::GlobalRoutingHelper::CalculateRoutes();

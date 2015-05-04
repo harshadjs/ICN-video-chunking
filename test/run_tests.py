@@ -6,10 +6,9 @@ import shutil
 import argparse
 import graph
 
-chunk_sizes = [1000, 2000, 5000, 10000, 20000, 50000]
-#chunk_sizes = [2000]
+chunk_sizes = [128, 256, 512, 1024, 4096, 8192]
 
-exclude_scenarios = ["scenario-1", "scenario-2"]
+exclude_scenarios = ["scenario-1", "scenario-2", "simple-tree"]
 
 def draw_graphs(results_path):
     graph.draw(results_path)
@@ -34,7 +33,9 @@ def run_scenario(exp_result_path, scenario, chunk_size):
     fobj.close()
 
     cmd = "NS_LOG=icnVideoChunkingClient:icnVideoChunkingServer " + \
-          ndn_path + "/ns-3/waf --run=" + scenario
+          ndn_path + "/ns-3/waf --run=\"" + scenario + \
+          " --chunkSize=%d\"" % chunk_size
+
     if verbose == 0:
         cmd = cmd + " > /tmp/waf.log 2>&1"
 
