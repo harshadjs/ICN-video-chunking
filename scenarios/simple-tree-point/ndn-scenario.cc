@@ -38,6 +38,7 @@ namespace ns3 {
 Ptr<Node> router;
 FILE* pit_fp;
 void printPIT();
+int chunk_size = -1;
 
 int get_cache_size() {
   int chunk_size;
@@ -130,6 +131,7 @@ main(int argc, char* argv[])
   // Set cache size to defined size
   char configstr2[100];
   sprintf(configstr2, "/NodeList/%d/$ns3::ndn::ContentStore/MaxSize", router->GetId());
+
   Config::Set (configstr2, UintegerValue (get_cache_size()));
 
   // Calculate and install FIBs

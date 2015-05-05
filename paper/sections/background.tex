@@ -1,29 +1,14 @@
 \section{Background} \label{sec:background}
-\begin{itemize}
-  \item \emph{Question: What follows the Zipf distribution? Is it the ``video
-    files'' or ``video chunks''? If we change vide chunk sizes, will it
-    change the popularity distribution as well? How do we account for
-    it?} \\
-    I think, the Zipf distribution for popularity is a very
-    generic observation and probably applies to video files as well as
-    to video chunks. So, I think it might not matter much if we change
-    chunk sizes. Zipf distribution will still be observed on these
-    different / variable sized chunks. So probably, we can go ahead
-    and assume that even after chunking differently, Zipf will still
-    be seen.
+In order to better introduce the question we are trying to answer, we will talk
+about our work in relation to two previously published papers. The first is
+called ``Developing a Predictive Model of Quality of Experience for Internet
+Video`` \cite{1}. This paper redefines the metrics used to predict the quality of
+experience that a user experiences depending on a number of measurements of
+video streaming. Although not directly related to caching, we used this work to
+determine which metrics we would try to measure to make sure our results
+translated to effects on the user.
 
-    \item \emph{Question: How do we take into consideration different
-      video access patterns?} \\ So, as long as we don't find any
-      study that talks about these patterns, we could just assign
-      weights to different parts of a video and assume that that's how
-      the videos are accessed. So, essentially, we also have a
-      distribution of these weights. We can try various options here:
-      \begin{itemize}
-        \item Exponential (Initial parts watched more often than the ends)
-        \item Uniform
-        \item Parabolic (Not sure if the name is correct, but what I
-          mean is - ends are watched more often than the middle) We
-          could ignore these patterns to start off, and once we have
-          got a working system we could then incorporate them.
-      \end{itemize}
-\end{itemize}
+The second paper is called ``Trace-Driven Analysis of ICN Caching Algorithms on
+Video-on-Demand Workloads `` \cite{2}. This work is actually where we got the idea for
+our own project. We chose to explore one of the few aspects of caching that the
+paper did not take into account.

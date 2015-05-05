@@ -35,25 +35,29 @@
 
 \begin{document}
 
-\title{SEGM EN TAT IO N: Effect of Chunking for Video Based Workloads
+\title{Effect of Chunk Size on Router Caches for Video Based Workloads
     in Information-Centric Networks}
 
 \numberofauthors{1}
 \author{
-  \alignauthor{Harshad Shirwadkar, Dayoon Chung}
-  \\
+  \alignauthor{Harshad Shirwadkar, Da-Yoon Chung} \\
+  \email{harshad@cmu.edu, dayoonc@andrew.cmu.edu} \\
   \sharedaffiliation
   \affaddr{Carnegie Mellon University }   \\
   \affaddr{Pittsburgh, PA 15213. }
-  \\
-  \email{\{harshad, dayoon\}@cmu.edu}
 %%  Paper \#163: 12 Pages
 }
 
 \maketitle
 
 \begin{abstract}
-MyAbstract
+Caching in routers has been widely explored, with some models of networking such
+as Content Centric Networking already providing implementations of such
+functionality. While the effects of many different parameters of caching has
+been quantified and studied, one aspect has largely been ignored: the chunk size
+of the content being cached. Our work attempts to explore this single aspect of
+caching and its effect on previously established metrics on both user experience
+and server performance.
 \end{abstract}
 
 % A category with the (minimum) three required fields
@@ -65,15 +69,13 @@ MyAbstract
 \keywords{ICN, CCN, NDN, Video} % NOT required for Proceedings
 
 \input{sections/intro}
-\todoh{Fill in this section}
 \input{sections/background}
 \input{sections/approach}
+\input{sections/experimentation}
 \input{sections/evaluation}
-\todoh{Fill in this section}
 \input{sections/related_work}
-\todoh{Fill in this section}
+\input{sections/future_work}
 \input{sections/conclusion}
-\todoh{Fill in this section}
 \bibliographystyle{abbrv}
 \bibliography{refs}
 

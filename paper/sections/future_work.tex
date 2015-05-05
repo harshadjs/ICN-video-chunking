@@ -1,0 +1,35 @@
+\section{Future Work} \label{sec:futurework}
+
+In order to obtain some early results and verify that our experimentation
+platform worked, we had to make some simplifications to our experiments. If we
+had more time, we would have liked to explore the following improvements to our
+model.
+
+\subsection{Topologies} \label{sec:topologies}
+
+We used a very rudimentary topology in the experiments evaluated in this
+project. We would have ideally liked to run our experiments on a topology more
+representative of a real network. Rocketfuel provides some PoP-level ISP maps
+which we could try to emulate in future experiments \cite{3}. Of course, with a larger
+topology, is it more difficult to collect data and then draw conclusion based on
+factors like connectedness of the router and how far it is from the edge.
+
+\subsection{User behavior} \label{sec:userbehavior}
+
+We would also like to try make our model account for real-world user behavior
+better. For example, in our experiments, we had a very simple view of user
+viewing behavior. We assumed the user had a uniform probability of stopping the
+video at any point from the start to the end. While this accounts for the fact
+that not all videos are watched in entirely, in reality, people are more likely
+to watch the front part of the video than the end. Also, people do not
+necessarily start watching the video from the beginning and may skip around.
+Although these factors might not drastically affect our results, if we accounted
+for them, we could say our experiments more closely model the real world.
+
+\subsection{non-simulated Video Traces} \label{sec:traces}
+
+For the sake of our experiments, we generated an artificial workload based on a
+zipf distribution of popularity and an arbitrary range of lengths and bitrate.
+In future experiments, we would like to parse and interpret some real traces of
+video watching in order to compute the effects of chunk size on them. 
+

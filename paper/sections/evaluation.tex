@@ -1,1 +1,40 @@
 \section{Evaluation} \label{sec:eval}
+
+\subsection{Metrics Evaluated} \label{sec:metrics}
+
+Join Time: This metric was used in the QoE paper as a measure of user
+experience. It refers to the time it takes for the video to start playing after
+it has been requested. Because we also used a video-based workload, we believed
+this was still a very relevant metric.
+
+Buffering Ratio: This metric was also used in the QoE paper. This is the ratio
+between the  time that the user spends waiting for the video to buffer and the
+total time to finish watching the video. We felt this would also be an
+interesting metric, because we expected it to vary inversely with chunk size, as
+it would take longer for increments of the video to be buffered. However, it is
+possible that our buffer size is large enough that we prefetch enough chunks
+that this is not the case.
+
+Average Response Time: Although this is not  really a quality of experience
+metric, we felt that measuring the average response time of interests would give
+some insight into the effects of caching. If the pending interest table is
+large, we would expect the average response time to increase. By the definition
+of our network, with no delays whatsoever, the upper bound on the ART is 40
+milliseconds, because we defined each of the links to have 10 millisecond
+latency.
+
+Pending Interest Table Size: This structure is import to us because we expected
+the number of pending interests to vary inversely with the chunk size. With
+smaller chunks, chunk request are made more frequently because the buffer
+empties in smaller increments, so more requests should pile up on the router
+node.
+
+Server Load Reduction: This is fraction of requests that was served by the cache
+rather than the server. This is a standard way to measure the benefits to the
+server due to caching.
+
+\subsection{Chunk Size} \label{sec:chunksize}
+
+We ran experiments for the following chunk sizes (in bytes): 128, 256, 512,
+1024, 4096, 8192.
+
