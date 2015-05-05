@@ -29,21 +29,21 @@ namespace ns3 {
 	 * Refers to the video that is currently being watched
 	 */
 	struct video_state {
-		uint8_t active;					/* Is the video being watched? */
 		struct video *video;			/* Information about the video being
 										 * watched right now */
-		uint32_t current_offset;		/* Total bytes watched */
-		uint64_t this_chunk_req_time;	/* Time when last chunk was requested */
-		uint64_t last_chunk_view_time;	/* Total view time last chunk */
-		uint32_t current_chunk;
-		uint32_t current_chunk_offset;
+		uint8_t v_started;
+		uint8_t v_active;
 
-		uint32_t nchunks;
-		uint64_t this_chunk_total_rtt;
-		uint64_t last_pkt_req_time;
-		uint64_t num_pkts_in_this_chunk;
-		float frac_video;
-		/* uint8_t access_dist; */
+		uint32_t v_bytes_downloaded;
+		uint32_t v_size;
+		uint32_t v_bytes_viewed;
+
+		uint64_t v_buffer_time;
+		uint64_t v_download_start_time;
+		uint64_t v_start_time;
+		uint64_t v_view_last_noted;
+
+		float v_watch_fraction;
 	};
 
 	struct video_access {
@@ -75,6 +75,8 @@ namespace ns3 {
 		struct video *get_next_video(void);
 		struct video *lookup_video(const char *name);
 		void new_video_started(struct video *video);
+		void video_stopped(void);
+		void dump_state(void);
 		void set_client_id(int id);
 	};
 

@@ -29,14 +29,26 @@
 #define NUM_SERVERS 1
 #define ROUTER_NODE 5
 #define SERVER_NODE 6
-#define CACHE_SIZE  1000
-#define SIMULATION_TIME 60
+#define CACHE_SIZE  8 * 1024 * 1024
+#define SIMULATION_TIME 3000
 
 namespace ns3 {
+
 
 Ptr<Node> router;
 FILE* pit_fp;
 void printPIT();
+
+int get_cache_size() {
+  int chunk_size;
+  FILE * fp = fopen("/home/harshad/projects/icn-video-chunking/apps/chunk.conf", "r");
+
+  fscanf(fp, "%d", &chunk_size);
+
+  fclose(fp);
+
+  return CACHE_SIZE / chunk_size;
+}
 
 /**
  * This scenario simulates a one server, one router, 5 client node tree.
@@ -54,7 +66,7 @@ main(int argc, char* argv[])
   //topologyReader.Read();
 
   Config::SetDefault("ns3::PointToPointNetDevice::DataRate", StringValue("10Mbps"));
-  Config::SetDefault("ns3::PointToPointNetDevice::Mtu", UintegerValue (30000));
+  Config::SetDefault("ns3::PointToPointNetDevice::Mtu", UintegerValue (0xFFFF));
   Config::SetDefault("ns3::PointToPointChannel::Delay", StringValue("10ms"));
   // Config::SetDefault("ns3::DropTailQueue::MaxPackets", StringValue("20"));
 
@@ -71,6 +83,7 @@ main(int argc, char* argv[])
   // Install NDN stack on all nodes
   ndn::StackHelper ndnHelper;
   ndnHelper.SetOldContentStore("ns3::ndn::cs::Lru");
+  //  ndnHelper.SetPit ("ns3::ndn::pit::Persistent::AggregateStats");
   ndnHelper.InstallAll();
 
   // Choosing forwarding strategy
@@ -86,6 +99,7 @@ main(int argc, char* argv[])
   // No caching on clients
   for (int i = 0; i < NUM_CLIENTS; i++) {
     Ptr<Node> client = nodes.Get(i);
+    clientApp.SetAttribute("ClientId", IntegerValue(client->GetId()));
     clientApp.Install(client);
 
     // Set cache size to 1 (disabled)
@@ -116,7 +130,7 @@ main(int argc, char* argv[])
   // Set cache size to defined size
   char configstr2[100];
   sprintf(configstr2, "/NodeList/%d/$ns3::ndn::ContentStore/MaxSize", router->GetId());
-  Config::Set (configstr2, UintegerValue (CACHE_SIZE));
+  Config::Set (configstr2, UintegerValue (get_cache_size()));
 
   // Calculate and install FIBs
   ndn::GlobalRoutingHelper::CalculateRoutes();
@@ -146,7 +160,9 @@ void printPIT()
 {
   Time simTime = Simulator::Now();
   auto pitSize = router->GetObject<ndn::L3Protocol>()->getForwarder()->getPit().size();
-  fprintf(pit_fp, "%f: %d\n", simTime.GetSeconds(), pitSize);
+
+  fprintf(pit_fp, "%f, %d\n", simTime.GetSeconds(), pitSize);
+  fflush(pit_fp);
 }
 
 

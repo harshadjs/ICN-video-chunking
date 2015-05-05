@@ -37,6 +37,8 @@
 #include "ns3/ndnSIM/helper/ndn-fib-helper.hpp"
 #include "ns3/random-variable.h"
 
+#define START_THRESHOLD (0.1f)
+
 NS_LOG_COMPONENT_DEFINE("icnVideoChunkingClient");
 
 namespace ns3 {
@@ -95,14 +97,12 @@ namespace ns3 {
 		ndn::App::StopApplication();
 	}
 
-
 	void
 	icnVideoChunkingClient::Retransmit() {
 		uint64_t current_time = get_time();
 
-		if(current_time - THIS_CHUNK_REQ_TIME > 4500000) {
-//			fprintf(stderr, "TIMEDOUT :(((((((((((((((((((((((\n");
-		}
+		Simulator::Schedule(Seconds(0.0), &icnVideoChunkingClient::SendInterest, this);
+// 		}
 	}
 
 	void
@@ -110,47 +110,38 @@ namespace ns3 {
 	{
 		struct video *video;
 		char interest_name[50];
+		uint64_t current_time = get_time();
 		UniformVariable rand(0, std::numeric_limits<uint32_t>::max());
 
-		if(this->helper.video_state.active == 1) {
-			sprintf(interest_name, "/prefix/sub/video_%d/%d/%d",
+		if(this->helper.video_state.v_active == 1) {
+			sprintf(interest_name, "/prefix/sub/video_%d/%d",
 					this->helper.video_state.video->index,
-					this->helper.video_state.current_chunk,
-					this->helper.video_state.current_chunk_offset);
+					STATE_VAR.v_bytes_downloaded);
 		} else {
 			video = this->helper.get_next_video();
 			this->helper.new_video_started(video);
-			sprintf(interest_name, "/prefix/sub/video_%d/%d/%d",
+			sprintf(interest_name, "/prefix/sub/video_%d/%d",
 					this->helper.video_state.video->index,
-					this->helper.video_state.current_chunk,
-					this->helper.video_state.current_chunk_offset);
-			this->helper.video_state.active = 1;
-			STATE_VAR.frac_video = this->helper.video_access[video->index].frac_video;
-			TOTAL_VIEWS++;
-//			fprintf(stderr, "Watching video %d ", video->index);
+					STATE_VAR.v_bytes_downloaded);
+				this->helper.video_state.v_active = 1;
+
+			STATE_VAR.v_download_start_time = current_time;
+			STATS_VAR.total_views++;
 		}
 
-		STATE_VAR.last_pkt_req_time = get_time();
-//		fprintf(stderr, "Client sent interest %s\n", interest_name);
 		auto interest = std::make_shared<ndn::Interest>(interest_name);
 		interest->setNonce(rand.GetValue());
 		interest->setInterestLifetime(ndn::time::seconds(1));
 
-		if(STATE_VAR.current_chunk_offset == 0) {
-			/* Only if this is a new _chunk_ */
-			THIS_CHUNK_REQ_TIME = get_time();
-//			printf("Setting THIS_CHUNK_REQ_TIME = %Lu\n", THIS_CHUNK_REQ_TIME);
-		}
-
 		m_transmittedInterests(interest, this, m_face);
 
 		m_face->onReceiveInterest(*interest);
-	//	Simulator::Schedule(Seconds(5.0), &icnVideoChunkingClient::Retransmit, this);
 	}
 
 
 	/* This function would never be called */
-	void icnVideoChunkingClient::OnInterest(std::shared_ptr<const ndn::Interest> interest) {
+	void icnVideoChunkingClient::OnInterest(std::shared_ptr<const ndn::Interest> interest)
+	{
 	}
 
 
@@ -159,8 +150,10 @@ namespace ns3 {
 		this->log_fp = fopen(this->log_file, "w");
 
 		fprintf(this->log_fp, "%u, %lu, %lu, %lu\n",
-				TOTAL_VIEWS, TOTAL_START_TIME, TOTAL_VIEW_TIME,
-				TOTAL_BUFFERING_TIME);
+				STATS_VAR.total_views - 1,
+				STATS_VAR.total_start_time,
+				STATS_VAR.total_view_time,
+				STATS_VAR.total_buffering_time);
 		fclose(this->log_fp);
 		Simulator::Schedule(Seconds(1.0), &icnVideoChunkingClient::dumpStats, this);
 	}
@@ -180,105 +173,67 @@ namespace ns3 {
 		return 0;
 	}
 
-	void icnVideoChunkingClient::onChunk(void)
-	{
-		uint64_t buffering_time, current_time, extra_time, avg_rtt;
-
-		if(STATE_VAR.current_chunk % 10 == 0) {
-			// printf("[Client %u]\t%d/%d\n",
-			// 	   this->client_id,
-			// 	   STATE_VAR.current_chunk,
-			// 	   STATE_VAR.video->n_chunks);
-		}
-
-		avg_rtt = STATE_VAR.this_chunk_total_rtt / STATE_VAR.num_pkts_in_this_chunk;
-		extra_time = (STATE_VAR.num_pkts_in_this_chunk - 1) * (avg_rtt / 2);
-		/* Buffering time for this chunk */
-		current_time = get_time() - extra_time;
-		// printf("[CHK_RECV] avg_rtt = %Lu\textra_time = %Lu\n",
-		// 	   avg_rtt, extra_time);
-
-		STATE_VAR.this_chunk_total_rtt = 0;
-		STATE_VAR.num_pkts_in_this_chunk = 0;
-
-		buffering_time = current_time - THIS_CHUNK_REQ_TIME;
-
-		/* Calculate video start time */
-		if(LAST_CHUNK_VIEW_TIME == 0) {
-			TOTAL_START_TIME += buffering_time;
-		}
-
-//		printf("buffering = %Lu, Last view = %Lu\n", buffering_time, LAST_CHUNK_VIEW_TIME);
-		/* Calculate buffering time */
-		if(buffering_time > LAST_CHUNK_VIEW_TIME) {
-			TOTAL_BUFFERING_TIME += buffering_time - LAST_CHUNK_VIEW_TIME;
-		}
-
-		LAST_CHUNK_VIEW_TIME = STATE_VAR.video->chunk_size * 30;
-		/* ^^ Assumes constant 360p bitrate */
-		/* Approx 5 minute ==> 10 Mb */
-		/* 2 * 1024 * 1024 bytes ==> 60 * 1000 * 1000 us */
-
-		TOTAL_VIEW_TIME += LAST_CHUNK_VIEW_TIME;
-		if(CURRENT_OFFSET >= this->helper.video_state.video->size) {
-			/* New video starts here: TODO Wait time distribution? */
-#if 0
-			fprintf(this->log_fp, "[DONE]\n");
-
-			fprintf(this->log_fp, "%d, %Lu, %Lu, %Lu\n",
-					this->helper.video_state.video->index,
-					TOTAL_START_TIME, TOTAL_VIEW_TIME,
-					TOTAL_BUFFERING_TIME);
-#endif
-			this->helper.video_state.active = 0;
-			Simulator::Schedule(Seconds(1.0), &icnVideoChunkingClient::SendInterest, this);
-		} else {
-			icnVideoChunkingClient::SendInterest();
-//			Simulator::Schedule(Seconds(0.0), &icnVideoChunkingClient::SendInterest, this);
-		}
-	}
-
 	/*
 	 * When Data arrives: Lot of stuff to do!
 	 */
 	void
 	icnVideoChunkingClient::OnData(std::shared_ptr<const ndn::Data> data)
 	{
+#define FRACTION(__num, __denom) (((double)__num) / (__denom))
+#define TIME_TO_BYTES(__us) ((__us) / 30)
+#define BYTES_TO_TIME(__bytes) ((__bytes) * 30)
 
-		int should_stop = 0;
 		ndn::Block block = data->getContent();
-//		std::cout << "Received " << data->getName() << std::endl;
+		uint32_t expected_view_time;
+		uint32_t current_time = get_time();
 
-		STATE_VAR.num_pkts_in_this_chunk++;
-		STATE_VAR.this_chunk_total_rtt += get_time() - STATE_VAR.last_pkt_req_time;
-		STATE_VAR.current_chunk_offset += block.value_size();
+		if(STATE_VAR.v_started) {
+			/*
+			 * In the ideal world where there was no video buffering, we would
+			 * have watched these many bytes (expected_view_time)
+			 */
+			expected_view_time = current_time - STATE_VAR.v_view_last_noted;
 
-		// printf("[PKT_RECV] total_rtt = %Lu\tnum_pkts = %Lu\n",
-		// 	   STATE_VAR.this_chunk_total_rtt,
-		// 	   STATE_VAR.num_pkts_in_this_chunk);
+			if(STATE_VAR.v_bytes_viewed + TIME_TO_BYTES(expected_view_time)
+			   < STATE_VAR.v_bytes_downloaded) {
+				/* We had as many bytes as needed to watch expected_view_time */
+				STATE_VAR.v_bytes_viewed += expected_view_time;
+			} else {
+				STATE_VAR.v_buffer_time += expected_view_time -
+					BYTES_TO_TIME(STATE_VAR.v_bytes_downloaded - STATE_VAR.v_bytes_viewed);
+				STATE_VAR.v_bytes_viewed = STATE_VAR.v_bytes_downloaded;
+			}
 
-		CURRENT_OFFSET += block.value_size();
-		if(((float)CURRENT_OFFSET / STATE_VAR.video->size) > STATE_VAR.frac_video) 
-			should_stop = 1;
-		// printf("%f, %f, %d\n", ((float)CURRENT_OFFSET / STATE_VAR.video->size),
-		// 	   STATE_VAR.frac_video,
-		// 	   should_stop);
-
-//		std::cout << CURRENT_OFFSET << "/" << STATE_VAR.video->size << std::endl;
-		if(should_stop) {
-			this->helper.video_state.active = 0;
-			Simulator::Schedule(Seconds(1.0), &icnVideoChunkingClient::SendInterest, this);
-		} if(STATE_VAR.current_chunk_offset >= STATE_VAR.video->chunk_size) {
-			// printf("Received Chunk %Lu, %Lu\n", STATE_VAR.current_chunk_offset,
-			// 	   STATE_VAR.video->chunk_size);
-			STATE_VAR.current_chunk++;
-			STATE_VAR.current_chunk_offset = 0;
-			icnVideoChunkingClient::onChunk();
+			STATE_VAR.v_bytes_downloaded += block.value_size();
+			STATE_VAR.v_view_last_noted = current_time;
 		} else {
-//			printf("Received packet\n");
-			icnVideoChunkingClient::SendInterest();
-//			Simulator::Schedule(Seconds(0.0), &icnVideoChunkingClient::SendInterest, this);
-			return;
+			/* The video has not started yet */
+			STATE_VAR.v_bytes_downloaded += block.value_size();
+
+			/* Check if we have enough to start the video */
+			if(FRACTION(STATE_VAR.v_bytes_downloaded, STATE_VAR.v_size) > START_THRESHOLD) {
+				STATE_VAR.v_start_time = current_time - STATE_VAR.v_download_start_time;
+				STATE_VAR.v_started = 1;
+				STATE_VAR.v_view_last_noted = current_time;
+				STATE_VAR.v_bytes_viewed = 0;
+			}
 		}
+
+		if((FRACTION(STATE_VAR.v_bytes_viewed, STATE_VAR.v_size)
+			>= STATE_VAR.v_watch_fraction)
+			|| (STATE_VAR.v_bytes_downloaded >= STATE_VAR.v_size)) {
+			printf("Finished\n");
+			/*
+			 * Video stopped
+			 * Take a break and watch another video after 1 second
+			 */
+			this->helper.video_stopped();
+			STATE_VAR.v_active = 0;
+			Simulator::Schedule(Seconds(1.0), &icnVideoChunkingClient::SendInterest, this);
+		} else {
+			icnVideoChunkingClient::SendInterest();
+		}
+
+//		this->helper.dump_state();
 	}
 }

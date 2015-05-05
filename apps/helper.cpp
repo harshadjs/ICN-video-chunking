@@ -3,6 +3,7 @@
 #include <time.h>
 #include "helper.hpp"
 #include "paths.h"
+#include "short-names.h"
 
 #include "ns3/ptr.h"
 #include "ns3/log.h"
@@ -18,6 +19,29 @@ namespace ns3 {
 	void icn_chunking_helper::new_video_started(struct video *video) {
 		memset(&this->video_state, 0, sizeof(this->video_state));
 		this->video_state.video = video;
+		this->video_state.v_watch_fraction = this->video_access[video->index].frac_video;
+		this->video_state.v_size = video->size;
+	}
+
+	void icn_chunking_helper::video_stopped(void) {
+		this->stats.total_buffering_time += this->video_state.v_buffer_time;
+		this->stats.total_view_time += this->video_state.v_bytes_viewed * 30;
+		this->stats.total_start_time += this->video_state.v_start_time;
+	}
+
+	void icn_chunking_helper::dump_state() {
+		if(video_state.v_started == 1) {
+			printf("[>] ");
+		} else {
+			printf("[-] ");
+		}
+
+		printf("Downloaded:\t%ld/%ld\t", video_state.v_bytes_downloaded,
+			   video_state.v_size);
+		printf("Viewed:\t%ld/%ld\t", video_state.v_bytes_viewed,
+			   video_state.v_bytes_downloaded);
+		printf("Buffering: %Lu\t", video_state.v_buffer_time);
+		printf("Start: %Lu\t\n", video_state.v_start_time);
 	}
 
 	struct video *icn_chunking_helper::get_next_video(void)
@@ -103,6 +127,7 @@ namespace ns3 {
 		while(!feof(fp_access)) {
 			if(fscanf(fp_access, "%d,%f", &access, &frac_video) != 2)
 				continue;
+			printf("frac = %f\n", frac_video);
 			this->video_access[count].index = access;
 			this->video_access[count].frac_video = frac_video;
 			count++;
