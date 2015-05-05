@@ -15,14 +15,6 @@ it would take longer for increments of the video to be buffered. However, it is
 possible that our buffer size is large enough that we prefetch enough chunks
 that this is not the case.
 
-Average Response Time: Although this is not  really a quality of experience
-metric, we felt that measuring the average response time of interests would give
-some insight into the effects of caching. If the pending interest table is
-large, we would expect the average response time to increase. By the definition
-of our network, with no delays whatsoever, the upper bound on the ART is 40
-milliseconds, because we defined each of the links to have 10 millisecond
-latency.
-
 Pending Interest Table Size: This structure is import to us because we expected
 the number of pending interests to vary inversely with the chunk size. With
 smaller chunks, chunk request are made more frequently because the buffer
@@ -36,5 +28,28 @@ server due to caching.
 \subsection{Chunk Size} \label{sec:chunksize}
 
 We ran experiments for the following chunk sizes (in bytes): 128, 256, 512,
-1024, 4096, 8192.
+1024, 1940, 4096, 6144, 8192. 1940 is an odd value because it is not 2048 as
+would be expected given the other values. We had to use value because for reason
+we could not identify, the data could not be received by the clients for any
+chunk sizes between roughly 2000 to 3000. The server would receive the
+interests, but the experiments would stop at that point. There were no other
+error messages or information we could use to debug, so in the interest of time,
+we used a value close to 2048 just to have a datapoint in the range of values.
+
+
+\subsection{Experiments without batching} \label{sec:nobatch}
+
+Not batching has the most extreme effect on the join time metric. For 128 byte
+chunks, we see the join time is about 30 seconds, which is longer than the
+length of most videos themselves. To deduce why this is the case, we can do some
+simple calculations. Given we defined a buffering window of 10\% of the total
+video size, for a video of size 10 MB, the client downloads 1 MB of the video
+before starting the video. This is equal to $1 * 1024 * 1024 / 128 = 8192$
+individual requests. The $RTT$ of each request is $4 * 10 = 40$ ms because
+each link has $10$ ms latency. Therefore, just the time the chunks spend in
+transit is equal to $8192 * 40 = 327680$ milliseconds, or 328 seconds.
+
+With larger chunk sizes, we see the linear decrease in join time as we would
+expect.
+
 
