@@ -1,24 +1,34 @@
 \section{Approach} \label{sec:approach}
-I think once we look at various configuration parameters available
-(section 3.1) and various chunking patterns (\ref{sec:patterns}), we
-will realize that there are many combinations possible. We will select
-a few scenarios and evaluate different chunking
-patterns. \ref{sec:scenarios} will talk about these scenarios.
+We discussed two different possibilities for running our experiments. The first
+option we considered was using real hardware to run the client, router, and
+server nodes for our experiments. The advantage of this approach is that it
+would be as close to a real, albeit very small, network in the real world. The
+obvious downside to this approach is the difficulty in setting up experiments,
+especially in implementing caching in commercial routers if we wanted to go all
+the way with this approach. There are test beds like emulab which we had
+previous experience using that allow experiments to easily define physical nodes
+and links in a network, but these do not provide any customization capabilities
+for the routers involved in the links. We quickly decided not to pursue this
+route.
 
-\subsection{System configuration} \label{sec:config}
-\begin{itemize}
-  \item \emph{Content popularity simulation} \\ Zipf - the parameter
-    should be 1.5. the results vary when we change the parameter. The
-    parameter is between {0.5, 2.5} NDNSim We want to refer here -
-    http://ndnsim.net/2.0/applications.html and write our own
-    application that generates interests according to our requirements
-    and also write a publisher.
+The second approach, which was ultimately better suited to our purposes, is a
+simulation and trace-driven approach, similar to [2]. Using simulation software
+allowed us to run many different configurations of experiments on individual
+machines, and to predefine workloads that we could keep constant across runs.
+Because we did not have to worry about acquiring and  transferring real files in
+our experiments, we could instead just simulate their effects on the network.
+This approach was easier than the former, while still being able to produce
+valid results.
 
-  \item Network topology?
-  \item Cache sizes?
-  \item Caching policy
-  \item Cache eviction policy
-\end{itemize}
-
-\subsection{Chunking patterns} \label{sec:patterns}
-\subsection{Scenarios} \label{sec:scenarios}
+\subsection{ndnSIM} \label{sec:ndnSIM}
+ndnSIM is a NS-3 based simulator for Named Data Networking (NDN), a networking
+model very similar to Content Centric Networking (CCN). It allows users to set
+up custom topologies, and define the behavior of individual nodes in the network
+using custom applications. In terms of our intended use of simulating the
+transfer of chunks between servers and clients in a network, ndnSIM is perfect
+because it already abstracts these content chunks into data and interests.
+Another big draw of ndnSIM is that it already has an implementation of a cache
+in the form of a Content Store structure. These Content Store objects are more
+general than the router caches we want to test, because they can be placed on
+any nodes in the network (not just routers). They are minimally configurable,
+allowing users to set the eviction policy and the max size in terms of packets. 

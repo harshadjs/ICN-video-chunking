@@ -1,1 +1,24 @@
 \section{Introduction} \label{sec:Intro}
+
+The idea of introducing caching to network routers is not a novel one. As the
+type of network traffic shifted from mostly host-to-host connections to content
+based traffic, it became clear that caching could provide savings as popular
+content was requested frequently by many different clients. Some recent work by
+Sun et al focuses on streaming video as a major source of traffic in modern
+networks [2], and as the size of these videos and available user bandwidth both
+increase today, we will see more and more redundant data make it’s way across
+the internet. By introducing network caches, it has been shown that a
+significant reduction in network traffic is achievable. However, while these
+publications take into account many different aspects of router caches such as
+cache placement and size, they sidestep a potentially important parameter: the
+size of the individual chunks themselves. 
+
+In this project, we explore the effects of chunk size on a number of previously
+established metrics for both user quality of experience and server performance.
+More specifically, we measure DUBBLE CHECK {join-time, buffering ratio, average
+latency of requests, and server load reduction}. Using the ndnSIM module for the
+NS-3 network simulator, we designed a client and server application to quantify
+these metrics. We run our experiments on a small, straightforward topology which
+while not accurately representative of the real world, demonstrates the type of
+results we would expect in practice. 
+
