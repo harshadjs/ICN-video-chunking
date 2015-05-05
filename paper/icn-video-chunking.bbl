@@ -1,3 +1,22 @@
-\begin{thebibliography}{}
+\begin{thebibliography}{1}
+
+\bibitem{1}
+A.~Balachandran, V.~Sekar, A.~Akella, S.~Seshan, I.~Stoica, and H.~Zhang.
+\newblock Developing a predictive model of quality of experience for internet
+  video.
+\newblock {\em SIGCOMM Comput. Commun. Rev.}, 43(4):339--350, Aug. 2013.
+
+\bibitem{3}
+N.~Spring, R.~Mahajan, D.~Wetherall, and T.~Anderson.
+\newblock Measuring isp topologies with rocketfuel.
+\newblock {\em IEEE/ACM Trans. Netw.}, 12(1):2--16, Feb. 2004.
+
+\bibitem{2}
+Y.~Sun, S.~K. Fayaz, Y.~Guo, V.~Sekar, Y.~Jin, M.~A. Kaafar, and S.~Uhlig.
+\newblock Trace-driven analysis of icn caching algorithms on video-on-demand
+  workloads.
+\newblock In {\em Proceedings of the 10th ACM International on Conference on
+  Emerging Networking Experiments and Technologies}, CoNEXT '14, pages
+  363--376, New York, NY, USA, 2014. ACM.
 
 \end{thebibliography}
