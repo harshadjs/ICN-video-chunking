@@ -28,7 +28,7 @@ def get_stats(dest):
     print("total_start_time = " + str(total_start_time))
     print("total_view_time = " + str(total_view_time))
     print("total_buffering_time = " + str(total_buffering_time))
-    return (total_start_time / (total_views), \
+    return (total_view_time, total_start_time / (total_views), \
             total_buffering_time / total_view_time)
 
 
@@ -56,16 +56,19 @@ def get_stats(dest):
 def plot(total_stats, index, chunks, names):
     print(total_stats)
     N = 1
-    
+
     ind = np.arange(N)  # the x locations for the groups
     width = 0.35       # the width of the bars
 
     rects = []
     fig, ax = plt.subplots()
     count = 0
-    for stat in total_stats:
-        rects.append(ax.bar(ind + width*count, stat[index], width, color = np.random.rand(1,3)))
-        count = count + 1
+    with open(names["title"], "w") as fobj:
+        for stat in total_stats:
+            chunk = chunks[count]
+            rects.append(ax.bar(ind + width*count, stat[index], width, color = np.random.rand(1,3)))
+            count = count + 1
+            fobj.write(str(chunk) + "," +  str(stat[index]) + "\n")
 
     # add some text for labels, title and axes ticks
     ax.set_ylabel(names["y"])
@@ -81,7 +84,7 @@ def calculate_load_reduction(root):
     with open(root + "/server-0-logs.txt", "r") as fobj:
         bytes_served_by_server = int(fobj.read())
     print("bytes_served_by_server = " + str(bytes_served_by_server))
-    reader = csv.reader(open(root + "/cs-trace-router-0.txt"), delimiter="\t")
+    reader = csv.reader(open(root + "/cs-trace-router.txt"), delimiter="\t")
     cache_misses = 0
     cache_hits = 0
     for row in reader:
@@ -97,11 +100,24 @@ def calculate_load_reduction(root):
     print("bytes_served_by_cache = " + str(bytes_served_by_cache))
     return [bytes_served_by_cache / (bytes_served_by_server + bytes_served_by_cache)]
 
+def calculate_pit_size(root):
+    reader = csv.reader(open(root + "/pit-log.txt"), delimiter=",")
+    pit_size = 0
+    total_time = 0
+    for row in reader:
+#        print(row)
+        pit_size += float(row[1].lstrip().rstrip())
+        total_time = float(row[0].lstrip().rstrip())
+
+    return [pit_size/total_time]
+
+
 def draw(root):
     for experiment in os.listdir(root):
         total_stats = []
         chunks = []
         server_load_reduction = []
+        pit_size = []
         dirs = [x for x in os.listdir(os.path.join(root, experiment)) if x.isdigit()]
 
         for subexpt in sorted(dirs, key=int):
@@ -110,21 +126,34 @@ def draw(root):
                 total_stats.append(get_stats(subexpt_dir))
                 chunks.append(subexpt)
                 server_load_reduction.append(calculate_load_reduction(subexpt_dir))
-
+                pit_size.append(calculate_pit_size(subexpt_dir))
         pp = PdfPages(experiment + ".pdf")
 
         print(total_stats)
         names = {}
-        names["y"] = "ms"
+        names["y"] = "us"
+        names["title"] = "View Time"
+        names["xtick"] = (chunks)
+        figure = plot(total_stats, 0, chunks, names)
+        pp.savefig(figure)
+
+        names = {}
+        names["y"] = "us"
         names["title"] = "Start Time"
         names["xtick"] = "Start Time"
-        figure = plot(total_stats, 0, chunks, names)
+        figure = plot(total_stats, 1, chunks, names)
         pp.savefig(figure)
 
         names["y"] = ""
         names["title"] = "Buffering Ratio"
         names["xtick"] = "Buffering Time / View Time"
-        figure = plot(total_stats, 1, chunks, names)
+        figure = plot(total_stats, 2, chunks, names)
+        pp.savefig(figure)
+
+        names["y"] = ""
+        names["title"] = "PIT Size"
+        names["xtick"] = "Buffering Time / View Time"
+        figure = plot(pit_size, 0, chunks, names)
         pp.savefig(figure)
 
         names["y"] = ""

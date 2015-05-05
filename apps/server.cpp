@@ -32,81 +32,84 @@ NS_LOG_COMPONENT_DEFINE("icnVideoChunkingServer");
 namespace ns3 {
 
 // Necessary if you are planning to use ndn::AppHelper
-NS_OBJECT_ENSURE_REGISTERED(icnVideoChunkingServer);
+	NS_OBJECT_ENSURE_REGISTERED(icnVideoChunkingServer);
 
-TypeId
-icnVideoChunkingServer::GetTypeId()
-{
-  static TypeId tid = TypeId("icnVideoChunkingServer")
-	  .SetParent<ndn::App>()
-	  .AddConstructor<icnVideoChunkingServer>()
-	  .AddAttribute("ServerId","ServerId",
-					IntegerValue(0),
-					MakeIntegerAccessor(&icnVideoChunkingServer::server_id),
-					MakeIntegerChecker<uint32_t>());
-  return tid;
-}
+	TypeId
+	icnVideoChunkingServer::GetTypeId()
+	{
+		static TypeId tid = TypeId("icnVideoChunkingServer")
+			.SetParent<ndn::App>()
+			.AddConstructor<icnVideoChunkingServer>()
+			.AddAttribute("ServerId","ServerId",
+						  IntegerValue(0),
+						  MakeIntegerAccessor(&icnVideoChunkingServer::server_id),
+						  MakeIntegerChecker<uint32_t>());
+		return tid;
+	}
 
-icnVideoChunkingServer::icnVideoChunkingServer()
-{
-}
+	icnVideoChunkingServer::icnVideoChunkingServer()
+	{
+	}
 
-void
-icnVideoChunkingServer::OnInterest(std::shared_ptr<const ndn::Interest> interest)
-{
-  // ndn::App::OnInterest(interest); // forward call to perform app-level tracing
-  // // do nothing else (hijack interest)
-  // NS_LOG_DEBUG("Do nothing for incoming interest for" << interest->getName());
+	void
+	icnVideoChunkingServer::OnInterest(std::shared_ptr<const ndn::Interest> interest)
+	{
+		// ndn::App::OnInterest(interest); // forward call to perform app-level tracing
+		// // do nothing else (hijack interest)
+		// NS_LOG_DEBUG("Do nothing for incoming interest for" << interest->getName());
 
-  ndn::App::OnInterest(interest);
+		ndn::App::OnInterest(interest);
 
-//  std::cout << "Producer received interest " << interest->getName() << std::endl;
+//		std::cout << "Producer received interest " << interest->getName() << std::endl;
 
-  // Note that Interests send out by the app will not be sent back to the app !
+		// Note that Interests send out by the app will not be sent back to the app !
 
-  auto data = std::make_shared<ndn::Data>(interest->getName());
+		auto data = std::make_shared<ndn::Data>(interest->getName());
 
-  data->setFreshnessPeriod(ndn::time::seconds(1000));
-  this->total_bytes_served += 1000;
-  data->setContent(std::make_shared< ::ndn::Buffer>(1000));
-  ndn::StackHelper::getKeyChain().sign(*data);
+		data->setFreshnessPeriod(ndn::time::seconds(1000));
+		this->total_bytes_served += 1000;
+		data->setContent(std::make_shared< ::ndn::Buffer>(this->chunk_size));
+		ndn::StackHelper::getKeyChain().sign(*data);
 
-  // Call trace (for logging purposes)
-  m_transmittedDatas(data, this, m_face);
-  m_face->onReceiveData(*data);
-  // Call trace (for logging purposes)
+		// Call trace (for logging purposes)
+		m_transmittedDatas(data, this, m_face);
+		m_face->onReceiveData(*data);
+		// Call trace (for logging purposes)
 
 //  printf("OnInterest\n");
-}
+	}
 
-void icnVideoChunkingServer::dumpStats(void)
-{
-	char filename[512];
-	FILE *fp;
+	void icnVideoChunkingServer::dumpStats(void)
+	{
+		char filename[512];
+		FILE *fp;
 
-	sprintf(filename, "server-%d-logs.txt", this->server_id);
-	fp = fopen(filename, "w");
-	fprintf(fp, "%Lu", this->total_bytes_served);
-	fclose(fp);
-	Simulator::Schedule(Seconds(1.0), &icnVideoChunkingServer::dumpStats, this);
-}
+		sprintf(filename, "server-%d-logs.txt", this->server_id);
+		fp = fopen(filename, "w");
+		fprintf(fp, "%Lu", this->total_bytes_served);
+		fclose(fp);
+		Simulator::Schedule(Seconds(1.0), &icnVideoChunkingServer::dumpStats, this);
+	}
 
-void
-icnVideoChunkingServer::StartApplication()
-{
-  App::StartApplication();
+	void
+	icnVideoChunkingServer::StartApplication()
+	{
+		FILE *fp = fopen(CHUNK_CONF, "r");
+		App::StartApplication();
 
-  this->total_bytes_served = 0;
-  // equivalent to setting interest filter for "/prefix" prefix
-  ndn::FibHelper::AddRoute(GetNode(), "/prefix/sub", m_face, 0);
-  //  printf("P: Registered route.\n");
-  Simulator::Schedule(Seconds(1.0), &icnVideoChunkingServer::dumpStats, this);
-}
+		fscanf(fp, "%d", &this->chunk_size);
+		fclose(fp);
+		this->total_bytes_served = 0;
+		// equivalent to setting interest filter for "/prefix" prefix
+		ndn::FibHelper::AddRoute(GetNode(), "/prefix/sub", m_face, 0);
+		//  printf("P: Registered route.\n");
+		Simulator::Schedule(Seconds(1.0), &icnVideoChunkingServer::dumpStats, this);
+	}
 
-void
-icnVideoChunkingServer::StopApplication()
-{
-  App::StopApplication();
-}
+	void
+	icnVideoChunkingServer::StopApplication()
+	{
+		App::StopApplication();
+	}
 
 } // namespace ns3

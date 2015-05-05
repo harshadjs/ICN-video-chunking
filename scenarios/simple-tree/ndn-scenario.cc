@@ -41,7 +41,7 @@ namespace ns3 {
 		cmd.Parse(argc, argv);
 
 		// read nodes from topology file
-//		Config::SetDefault("ns3::PointToPointNetDevice::Mtu", UintegerValue(10000));
+		Config::SetDefault("ns3::PointToPointNetDevice::Mtu", UintegerValue(0xFFFF));
 
 		AnnotatedTopologyReader topologyReader("", 1);
 		topologyReader.SetFileName("topologies/simple-tree.txt");
@@ -49,8 +49,8 @@ namespace ns3 {
 
 		// Install NDN stack on all nodes
 		ndn::StackHelper ndnHelper;
-//		ndnHelper.SetOldContentStore("ns3::ndn::cs::Chunked");
-		ndnHelper.SetOldContentStore("ns3::ndn::cs::Lru");
+		ndnHelper.SetOldContentStore("ns3::ndn::cs::Chunked");
+//		ndnHelper.SetOldContentStore("ns3::ndn::cs::Lru");
 		ndnHelper.InstallAll();
 
 		// Choosing forwarding strategy
@@ -74,7 +74,7 @@ namespace ns3 {
 			sprintf(configstr, "/NodeList/%d/$ns3::ndn::ContentStore/MaxSize", client->GetId());
 			printf("i = %d, cleint-Id = %d\n", i, client->GetId());
 			clientApp.SetAttribute("ClientId", IntegerValue(client->GetId()));
-			Config::Set (configstr, UintegerValue(1));
+//			Config::Set (configstr, UintegerValue(1));
 			clientApp.Install(client);
 		}
 
@@ -92,7 +92,7 @@ namespace ns3 {
 			// Set cache size to 1 (disabled)
 			char configstr[100];
 			sprintf(configstr, "/NodeList/%d/$ns3::ndn::ContentStore/MaxSize", server->GetId());
-			Config::Set (configstr, UintegerValue (1));
+//			Config::Set (configstr, UintegerValue (1));
 
 			// Set as origin of data for clients
 			ndnGlobalRoutingHelper.AddOrigins(prefix, server);
@@ -108,7 +108,7 @@ namespace ns3 {
 			// Set cache size to defined size
 			char configstr[100];
 			sprintf(configstr, "/NodeList/%d/$ns3::ndn::ContentStore/MaxSize", router->GetId());
-			Config::Set (configstr, UintegerValue (CACHE_SIZE));
+//			Config::Set (configstr, UintegerValue (CACHE_SIZE));
 			routers[i] = router;
 		}
 
@@ -121,7 +121,7 @@ namespace ns3 {
 		for (int i = 0; i < NUM_ROUTERS; i++) {
 			char buffer[30];
 			sprintf(buffer, "cs-trace-router-%d.txt", i);
-			ndn::CsTracer::Install(routers[i], buffer, Seconds(1));
+//			ndn::CsTracer::Install(routers[i], buffer, Seconds(1));
 		}
 
 		Simulator::Run();

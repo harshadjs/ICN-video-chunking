@@ -22,6 +22,7 @@
 #ifndef HIJACKER_H_
 #define HIJACKER_H_
 
+#include "paths.h"
 #include <stdint.h>
 #include "ns3/ndnSIM/apps/ndn-app.hpp"
 
@@ -31,6 +32,7 @@ class icnVideoChunkingServer : public ndn::App {
 public:
   static TypeId GetTypeId();
   uint32_t server_id;
+  uint32_t chunk_size;
   struct video *current_video;
   icnVideoChunkingServer();
 

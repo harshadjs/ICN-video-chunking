@@ -6,7 +6,8 @@ import shutil
 import argparse
 import graph
 
-chunk_sizes = [128, 256, 512, 1024, 4096, 8192]
+chunk_sizes = [128, 256, 512, 1024, 1940, 4096, 6144, 8192]
+#chunk_sizes = [2000]
 
 exclude_scenarios = ["scenario-1", "scenario-2", "simple-tree"]
 
@@ -48,6 +49,7 @@ def run_scenario(exp_result_path, scenario, chunk_size):
     os.system("mv " + ns3_dir + "/cs-trace-router*.txt " + chunk_exp_result_path)
     os.system("mv " + ns3_dir + "/client*logs.txt " + chunk_exp_result_path)
     os.system("mv " + ns3_dir + "/server*logs.txt " + chunk_exp_result_path)
+    os.system("mv " + ns3_dir + "/pit-log.txt " + chunk_exp_result_path)
 
 
 def run_experiment(num, alpha, num_videos, max_size):
