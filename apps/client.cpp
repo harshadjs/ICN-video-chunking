@@ -74,7 +74,6 @@ namespace ns3 {
 		this->helper.video_size_dist = UNI;
 		sprintf(this->log_file, "client-%d-logs.txt", this->client_id);
 
-//		printf("ClientID = %d\n", this->client_id);
 		// initialize ndn::App
 		ndn::App::StartApplication();
 

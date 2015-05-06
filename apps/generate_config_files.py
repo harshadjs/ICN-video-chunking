@@ -82,7 +82,7 @@ parser.add_argument("-c", "--num-clients", help="Total number of clients",
                     default = "5")
 args = parser.parse_args()
 
-filename = "/home/harshad/projects/icn-video-chunking/apps/videos.conf" ## SET_THIS
+filename = "/home/dayoon/15744/temp/ICN-video-chunking/apps/videos.conf" ## SET_THIS
 
 alpha = args.alpha
 video_max_size = int(args.max_video_size)

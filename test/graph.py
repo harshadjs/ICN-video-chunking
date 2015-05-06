@@ -76,6 +76,8 @@ def plot(total_stats, index, chunks, names):
     ax.set_xticks(ind + width)
     ax.set_xticklabels((names["xtick"]))
 
+
+
     ax.legend((rects), (chunks))
 
     return fig
@@ -167,5 +169,3 @@ def draw(root):
         # pp = PdfPages('foo.pdf')
         # pp.savefig(plot)
         # pp.close()
-
-
