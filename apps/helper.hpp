@@ -39,6 +39,8 @@ namespace ns3 {
 		uint32_t v_bytes_downloaded;
 		uint32_t v_size;
 		uint32_t v_bytes_viewed;
+		uint32_t v_buffer;
+		uint32_t v_next_packet;
 
 		uint64_t v_buffer_time;
 		uint64_t v_download_start_time;

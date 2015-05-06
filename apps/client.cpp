@@ -84,8 +84,7 @@ namespace ns3 {
 		this->helper.set_client_id(this->client_id);
 		this->helper.read_video_file();
 		// Schedule send of first interest
-
-		Simulator::Schedule(Seconds(1.0), &icnVideoChunkingClient::SendInterest, this);
+		SendInterestBatch(16384);
 		Simulator::Schedule(Seconds(1.0), &icnVideoChunkingClient::dumpStats, this);
 	}
 
@@ -116,15 +115,18 @@ namespace ns3 {
 		if(this->helper.video_state.v_active == 1) {
 			sprintf(interest_name, "/prefix/sub/video_%d/%d",
 					this->helper.video_state.video->index,
-					STATE_VAR.v_bytes_downloaded);
+					STATE_VAR.v_next_packet);
+//			printf("[REQ] %s\n", interest_name);
 		} else {
 			video = this->helper.get_next_video();
 			this->helper.new_video_started(video);
 			sprintf(interest_name, "/prefix/sub/video_%d/%d",
 					this->helper.video_state.video->index,
-					STATE_VAR.v_bytes_downloaded);
-				this->helper.video_state.v_active = 1;
+					STATE_VAR.v_next_packet);
+//			printf("[REQ] %s\n", interest_name);
+			this->helper.video_state.v_active = 1;
 
+			STATE_VAR.v_buffer = 16384;
 			STATE_VAR.v_download_start_time = current_time;
 			STATS_VAR.total_views++;
 		}
@@ -149,6 +151,7 @@ namespace ns3 {
 	{
 		this->log_fp = fopen(this->log_file, "w");
 
+//		printf("Dumping to %s\n", this->log_file);
 		fprintf(this->log_fp, "%u, %lu, %lu, %lu\n",
 				STATS_VAR.total_views - 1,
 				STATS_VAR.total_start_time,
@@ -171,6 +174,19 @@ namespace ns3 {
 		// }
 
 		return 0;
+	}
+
+	void
+	icnVideoChunkingClient::SendInterestBatch(uint32_t bytes_to_download)
+	{
+		STATE_VAR.v_buffer += bytes_to_download;
+//		printf("1 buffer = %d\n", STATE_VAR.v_buffer);
+		while(bytes_to_download > 0) {
+			this->SendInterest();
+			bytes_to_download = bytes_to_download - this->helper.chunk_size;
+//			printf("bytes_to_download = %ld\n", bytes_to_download);
+			STATE_VAR.v_next_packet += this->helper.chunk_size;
+		}
 	}
 
 	/*
@@ -197,7 +213,7 @@ namespace ns3 {
 			if(STATE_VAR.v_bytes_viewed + TIME_TO_BYTES(expected_view_time)
 			   < STATE_VAR.v_bytes_downloaded) {
 				/* We had as many bytes as needed to watch expected_view_time */
-				STATE_VAR.v_bytes_viewed += expected_view_time;
+				STATE_VAR.v_bytes_viewed += TIME_TO_BYTES(expected_view_time);
 			} else {
 				STATE_VAR.v_buffer_time += expected_view_time -
 					BYTES_TO_TIME(STATE_VAR.v_bytes_downloaded - STATE_VAR.v_bytes_viewed);
@@ -229,11 +245,17 @@ namespace ns3 {
 			 */
 			this->helper.video_stopped();
 			STATE_VAR.v_active = 0;
-			Simulator::Schedule(Seconds(1.0), &icnVideoChunkingClient::SendInterest, this);
+			icnVideoChunkingClient::SendInterestBatch(16384);
 		} else {
-			icnVideoChunkingClient::SendInterest();
+//			printf("2 buffer = %d\n", STATE_VAR.v_buffer);
+			STATE_VAR.v_buffer -= block.value_size();
+//			printf("3 buffer = %ld\n", STATE_VAR.v_buffer);
+			if(STATE_VAR.v_buffer < 16384) {
+				icnVideoChunkingClient::SendInterestBatch(16384 - STATE_VAR.v_buffer);
+			}
 		}
 
-//		this->helper.dump_state();
+		// printf("[%Lu] ", current_time);
+		// this->helper.dump_state();
 	}
 }

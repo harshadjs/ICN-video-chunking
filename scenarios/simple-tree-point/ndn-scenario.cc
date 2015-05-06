@@ -30,7 +30,7 @@
 #define ROUTER_NODE 5
 #define SERVER_NODE 6
 #define CACHE_SIZE  8 * 1024 * 1024
-#define SIMULATION_TIME 3000
+#define SIMULATION_TIME 600
 
 namespace ns3 {
 
