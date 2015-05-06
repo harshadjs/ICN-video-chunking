@@ -24,7 +24,7 @@ clients linked to a single router, which in turn is linked to a server.
 
 The bandwidth of the links between the nodes is 10  mbps with
 10 ms of latency. With our workload, we do not  see enough traffic for
-congestion to affect our results. (RIGHT?????????)
+congestion to affect our results.
 
 
 
@@ -42,13 +42,13 @@ representative of the average behavior. We made this compromise in the interest
 of time, but ideally, we could have run many randomized experiments multiple
 times and found an average.
 In order to better replicate real-world video streaming applications, we define
-a buffer which is 0.3 times the length of the video. Instead of beginning the
+a buffer which is 0.1 times the length of the video. Instead of beginning the
 simulating watching of the video once the first chunk is received, which we had
 done originally, we begin the watching of the video once the buffer is full for
 the first time. Once the video has begun to be watched, we track the current
 play time of the video and the amount of data fetched separately. The buffer
 slides along with the current play time such that the client tries to always
-have the next 30\% of the chunks of the video pre loaded. The client would be
+have the next 10\% of the chunks of the video pre loaded. The client would be
 considered to be in a buffering state if the current play time catches up to the
 last chunk fetched in the buffer.
 
@@ -58,7 +58,7 @@ clients do not specify the size of the chunk in the requests; this is defined in
 the server application. Instead, the client determines the size of the chunk by
 checking the size of the data received. Once data is received, the client
 updates the buffer, checks if its buffer is full, and requests another chunk if
-it is not. If it is full, the client waits until another chunk’s worth of play
+it is not. If it is full, the client waits until another chunk's worth of play
 time has passed, and then requests another chunk.
 
 \subsection{Server Application} \label{sec:server}
