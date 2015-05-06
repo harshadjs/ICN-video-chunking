@@ -100,6 +100,7 @@ namespace ns3 {
 		this->n_videos = 0;
 
 		fscanf(fp_chunk, "%d", &chunk_size);
+		this->chunk_size = chunk_size;
 		fclose(fp_chunk);
 
 		while(!feof(fp)) {
@@ -127,7 +128,6 @@ namespace ns3 {
 		while(!feof(fp_access)) {
 			if(fscanf(fp_access, "%d,%f", &access, &frac_video) != 2)
 				continue;
-			printf("frac = %f\n", frac_video);
 			this->video_access[count].index = access;
 			this->video_access[count].frac_video = frac_video;
 			count++;

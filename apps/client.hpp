@@ -62,6 +62,8 @@ namespace ns3 {
 
 		void onChunk(void);
 
+		void SendInterestBatch(uint32_t);
+
 		int read_video_file(void);
 		struct video *get_next_video(void);
 
