@@ -11,9 +11,22 @@ is also very boring.
 
 We therefore ran our experiments on a more complex topology involving five
 clients linked to a single router, which in turn is linked to a server.
-(TOPOLOGY IMAGE). The bandwidth of the links between the nodes is 10  mbps with
+
+\begin{figure}[h]
+    \begin{center}
+        \begin{tabular}{c}
+            \includegraphics[width=0.45\textwidth]{fig/topology.png} \\
+        \end{tabular}
+        \caption{Topology for the experiments}
+        \label{fig:topology}
+    \end{center}
+\end{figure}
+
+The bandwidth of the links between the nodes is 10  mbps with
 10 ms of latency. With our workload, we do not  see enough traffic for
 congestion to affect our results. (RIGHT?????????)
+
+
 
 \subsection{Client Application} \label{sec:client}
 
@@ -81,3 +94,18 @@ In order to circumvent this complication, we configured ndnSIM to have an MTU
 much larger than any of the chunk sizes we experimented with. Although this does
 not model the real world perfectly, we felt this was an acceptable compromise
 because it would allow us to trust the cache to behave as we expected.
+
+\subsection{Batching} \label{sec:batching}
+
+In some initial runs of our experiment, we did not implement any batching of
+requests by the client. Individual chunks were requested in order, one after the
+other. Unsurprisingly, certain metrics we chose like start-up time suffered
+miserably as RTT for the packets (40 ms, with our particular topology) consumed
+the vast majority of the time before the initial buffer filled and the video
+started being watched.
+
+For later experiments, we implemented batching on the client. Instead of
+individual interests, the client computes which chunks in the buffer are not yet
+fetched, and sends individual interests for those chunks all at once. Once it
+receives all of the data for this batch of requests, it repeats the process. The
+effects of this are quantified in the results section.
